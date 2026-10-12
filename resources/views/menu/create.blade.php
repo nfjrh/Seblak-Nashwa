@@ -7,4 +7,4 @@
     @csrf
     @include('menu._form')
 </form>
-@endsection
+@endsection 

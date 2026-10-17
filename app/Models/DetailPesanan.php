@@ -9,7 +9,10 @@ class DetailPesanan extends Model
     protected $table = 'detail_pesanan';
     protected $primaryKey = 'id_detail';
     public $timestamps = false;
-    protected $guarded = [];
+
+    protected $fillable = [
+        'id_pesanan', 'id_menu', 'id_level', 'jumlah', 'harga', 'subtotal',
+    ];
 
     public function pesanan()
     {
@@ -26,7 +29,7 @@ class DetailPesanan extends Model
         return $this->belongsTo(LevelPedas::class, 'id_level', 'id_level');
     }
 
-    public function topping()
+    public function toppings()
     {
         return $this->belongsToMany(
             Topping::class,

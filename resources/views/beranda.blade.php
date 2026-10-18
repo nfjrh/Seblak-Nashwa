@@ -8,7 +8,7 @@
     $img = fn ($file) => file_exists(public_path('images/' . $file)) ? asset('images/' . $file) : null;
     $rp  = fn ($angka) => 'Rp' . number_format((float) $angka, 0, ',', '.');
 
-    $tautMenu    = Route::has('menu.index') ? route('menu.index') : '#menu';
+    $tautMenu    = Route::has('katalog.index') ? route('katalog.index') : '#menu';
     $menuPertama = $menus->first();
 
     $deskripsiLevel = ['Tanpa pedas', 'Pedas ringan', 'Pedas sedang', 'Pedas mantap', 'Sangat pedas', 'Level nekat'];
@@ -77,7 +77,7 @@
         @else
             <div class="menu-grid">
                 @foreach ($menus as $menu)
-                    <a class="menu-card" href="{{ Route::has('menu.show') ? route('menu.show', $menu->id_menu) : $tautMenu }}">
+                    <a class="menu-card" href="{{ Route::has('katalog.show') ? route('katalog.show', $menu->id_menu) : $tautMenu }}">
                         <div class="media media-card">
                             <x-foto :src="$menu->fotoUrl()" :alt="$menu->nama_menu" />
                         </div>
@@ -302,7 +302,7 @@
                     var aktif = b === btn;
                     b.classList.toggle('on', aktif);
                     b.setAttribute('aria-pressed', aktif ? 'true' : 'false');
-                });
+                }); 
                 nama.textContent = 'Level ' + i;
                 teks.textContent = desk[i] || '';
             });

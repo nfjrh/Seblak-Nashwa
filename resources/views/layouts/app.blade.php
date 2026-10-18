@@ -14,7 +14,7 @@
 <body>
 @php
     // Tautan ke halaman anggota lain. Selama route-nya belum dibuat, tautan diarahkan ke tempat sementara.
-    $tautMenu    = Route::has('menu.index') ? route('menu.index') : url('/') . '#menu';
+    $tautMenu    = Route::has('katalog.index') ? route('katalog.index') : url('/') . '#menu';
     $tautPesanan = Route::has('pesanan.riwayat') ? route('pesanan.riwayat') : route('login');
     $namaDepan   = auth()->check() ? \Illuminate\Support\Str::of(auth()->user()->nama)->before(' ') : null;
 @endphp

@@ -36,9 +36,11 @@ class Menu extends Model
     }
 
     /**
-     * URL foto menu. Kolom `gambar` berisi path relatif dari folder public,
-     * contoh: images/menu/seblak-komplit.jpg
-     * Kalau file belum ada, hasilnya null dan tampilan memakai gambar pengganti.
+     * URL foto menu. Mendukung dua cara penyimpanan:
+     * 1. Foto upload dari form admin, tersimpan di storage (contoh: menu/abc.jpg),
+     *    dan tampil lewat folder public/storage (butuh: php artisan storage:link).
+     * 2. Foto manual di folder public (contoh: images/menu/seblak.jpg).
+     * Kalau file tidak ditemukan, hasilnya null dan tampilan memakai gambar pengganti.
      */
     public function fotoUrl(): ?string
     {
@@ -48,6 +50,14 @@ class Menu extends Model
 
         $path = ltrim($this->gambar, '/');
 
-        return file_exists(public_path($path)) ? asset($path) : null;
+        if (file_exists(public_path($path))) {
+            return asset($path);
+        }
+
+        if (file_exists(public_path('storage/' . $path))) {
+            return asset('storage/' . $path);
+        }
+
+        return null;
     }
 }

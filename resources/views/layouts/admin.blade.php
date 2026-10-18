@@ -89,13 +89,14 @@
 
 <body>
 @php
-    // Menu sidebar. Kalau route-nya belum dibuat anggota lain, tautan tampil redup dan belum bisa diklik.
+    // Setiap menu boleh punya beberapa kemungkinan nama route. Yang pertama ditemukan dipakai.
+    // Kalau tidak ada yang ditemukan, tautan tampil redup dan belum bisa diklik.
     $menuAdmin = [
-        ['label' => '🍜 Menu Seblak',   'route' => 'admin.menu.index',     'aktif' => 'admin.menu.*'],
-        ['label' => '📂 Kategori',      'route' => 'admin.kategori.index', 'aktif' => 'admin.kategori.*'],
-        ['label' => '🌶️ Topping',       'route' => 'admin.topping.index',  'aktif' => 'admin.topping.*'],
-        ['label' => '🔥 Level Pedas',   'route' => 'admin.level.index',    'aktif' => 'admin.level.*'],
-        ['label' => '🛒 Pesanan',       'route' => 'admin.pesanan.index',  'aktif' => 'admin.pesanan.*'],
+        ['label' => '🍜 Menu Seblak', 'routes' => ['admin.menu.index', 'menu.index'],         'aktif' => ['admin.menu.*', 'menu.*']],
+        ['label' => '📂 Kategori',    'routes' => ['admin.kategori.index', 'kategori.index'], 'aktif' => ['admin.kategori.*', 'kategori.*']],
+        ['label' => '🌶️ Topping',     'routes' => ['admin.topping.index', 'topping.index'],   'aktif' => ['admin.topping.*', 'topping.*']],
+        ['label' => '🔥 Level Pedas', 'routes' => ['admin.level.index', 'level.index'],       'aktif' => ['admin.level.*', 'level.*']],
+        ['label' => '🛒 Pesanan',     'routes' => ['admin.pesanan.index', 'pesanan.index'],   'aktif' => ['admin.pesanan.*', 'pesanan.*']],
     ];
 @endphp
 
@@ -109,8 +110,9 @@
 
         <p>Manajemen</p>
         @foreach ($menuAdmin as $item)
-            @if (Route::has($item['route']))
-                <a href="{{ route($item['route']) }}" class="{{ request()->routeIs($item['aktif']) ? 'active' : '' }}">{{ $item['label'] }}</a>
+            @php $tujuan = collect($item['routes'])->first(fn ($r) => Route::has($r)); @endphp
+            @if ($tujuan)
+                <a href="{{ route($tujuan) }}" class="{{ request()->routeIs(...$item['aktif']) ? 'active' : '' }}">{{ $item['label'] }}</a>
             @else
                 <a href="#" class="soon" title="Halaman ini belum dibuat">{{ $item['label'] }}</a>
             @endif

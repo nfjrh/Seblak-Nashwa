@@ -9,9 +9,10 @@ class Kategori extends Model
     protected $table = 'kategori';
     protected $primaryKey = 'id_kategori';
     public $timestamps = false;
-    protected $guarded = [];
 
-    public function menu()
+    protected $fillable = ['nama_kategori'];
+
+    public function menus()
     {
         return $this->hasMany(Menu::class, 'id_kategori', 'id_kategori');
     }

@@ -9,7 +9,8 @@ class DetailKeranjang extends Model
     protected $table = 'detail_keranjang';
     protected $primaryKey = 'id_detail_keranjang';
     public $timestamps = false;
-    protected $guarded = [];
+
+    protected $fillable = ['id_keranjang', 'id_menu', 'id_level', 'jumlah'];
 
     public function keranjang()
     {
@@ -26,7 +27,7 @@ class DetailKeranjang extends Model
         return $this->belongsTo(LevelPedas::class, 'id_level', 'id_level');
     }
 
-    public function topping()
+    public function toppings()
     {
         return $this->belongsToMany(
             Topping::class,

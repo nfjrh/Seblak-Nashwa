@@ -2,7 +2,7 @@
 
 Website resmi untuk UMKM Seblak Nashwa. Pelanggan dapat melihat katalog menu seblak, melakukan kustomisasi tingkat kepedasan & topping, melakukan pemesanan online, serta melacak status pesanan secara real-time. Sementara itu, pemilik/admin dapat mengelola data produk, memantau pesanan masuk, dan melihat laporan penjualan dari satu sistem terintegrasi. Proyek ini dikerjakan sebagai tugas kelompok untuk memenuhi mata kuliah terkait.
 
-## Tim Pengembang (Kelompok)
+## Tim Pengembang 
 Berikut adalah daftar 5 orang anggota tim yang berpartisipasi dalam pengembangan proyek Seblak Nashwa:
 
 | NIM | Nama | Peran |

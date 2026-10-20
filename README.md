@@ -7,11 +7,11 @@ Berikut adalah daftar 5 orang anggota tim yang berpartisipasi dalam pengembangan
 
 | NIM | Nama | Peran |
 | :--- | :--- | :--- |
-| [Masukkan NIM] | [Nama Anggota 1] | - |
-| [Masukkan NIM] | [Nama Anggota 2] | - |
-| [Masukkan NIM] | [Nama Anggota 3] | - |
-| [Masukkan NIM] | [Nama Anggota 4] | - |
-| [Masukkan NIM] | [Nama Anggota 5] | - |
+| 250210501040 | Pasya Dwi Rama | - |
+| 250210500029 | Nurul Fajrih | - |
+| 250210500025 | Najwa Nur Asyifa | - |
+| 250210500022 | Intan Nur Ilmi | - |
+| 210210501036 | M. Alwi Shihab | - |
 
 ---
 
@@ -50,18 +50,12 @@ Admin memiliki hak akses penuh untuk mengontrol operasional toko dan memantau pe
 
 ## Aturan Sistem
 
-* **Hak Akses Berdasarkan Peran:** Pelanggan fokus pada area belanja dan riwayat pribadi, sedangkan admin mengelola panel kontrol operasional toko.
+* **Hak Akses Berdasarkan Peran:** Pelanggan fokus pada area belanja dan riwayat pribadi, sedangkan admin mengelola panel kontrol operasional.
 * **Validasi Stok & Menu:** Produk yang kosong atau habis tidak dapat dipesan oleh pelanggan.
-* **Desain Responsif:** Dibangun agar nyaman diakses melalui berbagai perangkat.
+* **Desain Responsif:** Dibangun agar nyaman diakses melalui berbagai perangkat baik oleh pelanggan dari Seblak Nashwa maupun tim operasional Seblak Nashwa
 
 ---
 
 ## Cara Menjalankan Proyek (Local Development)
 
 Prasyarat: Pastikan Laravel Herd, MySQL, Node.js, Git, dan DBeaver sudah terpasang di komputer Anda.
-
-1. **Clone repositori ini di direktori folder yang dikelola oleh Laravel Herd:**
-```bash
-cd D:\Herd
-git clone [https://github.com/username-kamu/seblak-nashwa.git](https://github.com/username-kamu/seblak-nashwa.git) seblak_nashwa
-cd seblak_nashwa

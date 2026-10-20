@@ -16,7 +16,7 @@ class PesananController extends Controller
     }
 
     // Menampilkan detail dari satu pesanan tertentu
-    public function detail($id)
+    public function detail(int|string $id)
     {
         $pesanan = Pesanan::with([
             'detailPesanan.menu', 

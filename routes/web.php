@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthPelangganController;
 use App\Http\Controllers\BerandaController;
 use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\KeranjangController;
 use App\Http\Controllers\KatalogController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\CheckoutController;
@@ -60,10 +61,22 @@ Route::post('/admin/logout', [AdminController::class, 'logout'])
 Route::resource('kategori', KategoriController::class)->except('show');
 Route::resource('menu', MenuController::class)->except('show');
 Route::get('/katalog', [KatalogController::class, 'index'])->name('katalog.index');
-Route::get('/katalog/{menu}', [KatalogController::class, 'show'])->name('katalog.show'); 
+Route::get('/katalog/{menu}', [KatalogController::class, 'show'])->name('katalog.show');
 
-// ===== Anggota 5: Checkout & Pesanan =====
-Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
-Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process');
-Route::get('/pesanan/riwayat', [PesananController::class, 'riwayat'])->name('pesanan.riwayat');
-Route::get('/pesanan/{id}', [PesananController::class, 'detail'])->name('pesanan.detail');
+/*
+|--------------------------------------------------------------------------
+| Keranjang, checkout, dan pesanan (harus login sebagai pelanggan)
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth')->group(function () {
+    Route::get('/keranjang', [KeranjangController::class, 'index'])->name('keranjang.index');
+    Route::post('/keranjang', [KeranjangController::class, 'tambah'])->name('keranjang.tambah');
+    Route::patch('/keranjang/{id}', [KeranjangController::class, 'ubah'])->whereNumber('id')->name('keranjang.ubah');
+    Route::delete('/keranjang/{id}', [KeranjangController::class, 'hapus'])->whereNumber('id')->name('keranjang.hapus');
+
+    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+    Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process');
+
+    Route::get('/pesanan/riwayat', [PesananController::class, 'riwayat'])->name('pesanan.riwayat');
+    Route::get('/pesanan/{id}', [PesananController::class, 'detail'])->whereNumber('id')->name('pesanan.detail');
+});

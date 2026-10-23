@@ -17,6 +17,9 @@
     $tautMenu    = Route::has('katalog.index') ? route('katalog.index') : url('/') . '#menu';
     $tautPesanan = Route::has('pesanan.riwayat') ? route('pesanan.riwayat') : route('login');
     $namaDepan   = auth()->check() ? \Illuminate\Support\Str::of(auth()->user()->nama)->before(' ') : null;
+    $jumlahKeranjang = auth()->check()
+        ? (int) \App\Models\DetailKeranjang::whereHas('keranjang', fn ($q) => $q->where('id_user', auth()->id()))->sum('jumlah')
+        : 0;
 @endphp
 
 <header class="nav">
@@ -46,6 +49,8 @@
             @else
                 @auth
                     <span class="hai">Halo, {{ $namaDepan }}</span>
+                    <a href="{{ route('keranjang.index') }}" class="link-btn">Keranjang{{ $jumlahKeranjang > 0 ? ' (' . $jumlahKeranjang . ')' : '' }}</a>
+                    <a href="{{ route('pesanan.riwayat') }}" class="link-btn">Pesanan saya</a>
                     <form action="{{ route('logout') }}" method="POST" class="inline">
                         @csrf
                         <button type="submit" class="link-btn">Keluar</button>

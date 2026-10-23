@@ -36,4 +36,18 @@ class DetailKeranjang extends Model
             'id_topping'
         );
     }
+
+    /** Harga satu porsi: menu + tambahan level pedas + semua topping. */
+    public function hargaSatuan(): float
+    {
+        return (float) ($this->menu->harga ?? 0)
+            + (float) ($this->levelPedas->tambahan_harga ?? 0)
+            + (float) $this->toppings->sum('harga');
+    }
+
+    /** Harga satu porsi dikali jumlah. */
+    public function subtotal(): float
+    {
+        return $this->hargaSatuan() * $this->jumlah;
+    }
 }

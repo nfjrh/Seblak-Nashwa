@@ -22,6 +22,12 @@ class Keranjang extends Model
     }
 
     public function detailKeranjangs()
+    // ===== Intan: tambahan fitur keranjang =====
+    public function getTotalAttribute()
+    {
+        return $this->detailKeranjangs->sum(fn ($d) => $d->subtotal());
+    }
+    // ===== End Intan =====
     {
         return $this->hasMany(DetailKeranjang::class, 'id_keranjang', 'id_keranjang');
     }

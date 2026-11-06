@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 
 class Keranjang extends Model
@@ -26,10 +27,24 @@ class Keranjang extends Model
         return $this->hasMany(DetailKeranjang::class, 'id_keranjang', 'id_keranjang');
     }
 
-      // ===== Intan: tambahan fitur keranjang =====
-    public function getTotalAttribute()
+    // Accessor: $keranjang->total (angka) dan $keranjang->total_rupiah (teks)
+    protected function total(): Attribute
     {
-        return $this->detailKeranjangs->sum(fn ($d) => $d->subtotal());
+        return Attribute::make(
+            get: fn () => $this->detailKeranjangs->sum(fn ($d) => $d->subtotal())
+        );
     }
-    // ===== End Intan =====
+
+    protected function totalRupiah(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => 'Rp ' . number_format($this->total, 0, ',', '.')
+        );
+    }
+
+    // Static method: ambil keranjang milik user, buat baru kalau belum ada
+    public static function milikUser(int $idUser): self
+    {
+        return static::firstOrCreate(['id_user' => $idUser]);
+    }
 }

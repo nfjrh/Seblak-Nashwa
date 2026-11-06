@@ -10,10 +10,16 @@ use Illuminate\Support\Facades\Auth;
 
 class KeranjangController extends Controller
 {
+    // Constructor: Laravel otomatis menyuntikkan objek DetailKeranjang
+    public function __construct(private DetailKeranjang $detail)
+    {
+    }
+
     /** Item keranjang milik pelanggan yang sedang login. */
     private function itemMilikSaya()
     {
-        return DetailKeranjang::whereHas('keranjang', fn ($q) => $q->where('id_user', Auth::id()));
+        return $this->detail->newQuery()
+            ->whereHas('keranjang', fn ($q) => $q->where('id_user', Auth::id()));
     }
 
     public function index()
@@ -35,7 +41,7 @@ class KeranjangController extends Controller
             'id_level'   => 'required|exists:level_pedas,id_level',
             'topping'    => 'nullable|array',
             'topping.*'  => 'exists:topping,id_topping',
-            'jumlah'     => 'required|integer|min:1|max:20',
+            'jumlah'     => 'required|integer|min:' . DetailKeranjang::JUMLAH_MIN . '|max:' . DetailKeranjang::JUMLAH_MAKS,
         ], [
             'id_level.required' => 'Pilih level pedasnya dulu.',
         ]);
@@ -47,7 +53,7 @@ class KeranjangController extends Controller
 
         $toppingIds = collect($data['topping'] ?? [])->map(fn ($v) => (int) $v)->unique()->sort()->values()->all();
 
-        $keranjang = Keranjang::firstOrCreate(['id_user' => Auth::id()]);
+        $keranjang = Keranjang::milikUser(Auth::id());
 
         // Kalau menu, level, dan topping-nya sama persis, cukup tambah jumlahnya.
         $sama = $keranjang->detailKeranjangs()
@@ -58,7 +64,7 @@ class KeranjangController extends Controller
             ->first(fn ($d) => $d->toppings->pluck('id_topping')->map(fn ($v) => (int) $v)->sort()->values()->all() === $toppingIds);
 
         if ($sama) {
-            $sama->update(['jumlah' => min(20, $sama->jumlah + $data['jumlah'])]);
+            $sama->update(['jumlah' => $sama->jumlah + $data['jumlah']]); // batas maksimal dijaga mutator
         } else {
             $item = DetailKeranjang::create([
                 'id_keranjang' => $keranjang->id_keranjang,
@@ -74,7 +80,9 @@ class KeranjangController extends Controller
 
     public function ubah(Request $request, int $id)
     {
-        $data = $request->validate(['jumlah' => 'required|integer|min:1|max:20']);
+        $data = $request->validate([
+            'jumlah' => 'required|integer|min:' . DetailKeranjang::JUMLAH_MIN . '|max:' . DetailKeranjang::JUMLAH_MAKS,
+        ]);
 
         $this->itemMilikSaya()->findOrFail($id)->update(['jumlah' => $data['jumlah']]);
 

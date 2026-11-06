@@ -2,10 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 
 class DetailKeranjang extends Model
 {
+    // Constant: batas jumlah per item (sebelumnya angka 20 tertulis langsung)
+    const JUMLAH_MIN = 1;
+    const JUMLAH_MAKS = 20;
+
     protected $table = 'detail_keranjang';
     protected $primaryKey = 'id_detail_keranjang';
     public $timestamps = false;
@@ -34,6 +39,22 @@ class DetailKeranjang extends Model
             'detail_keranjang_topping',
             'id_detail_keranjang',
             'id_topping'
+        );
+    }
+
+    // Mutator: jumlah selalu dijaga di antara JUMLAH_MIN dan JUMLAH_MAKS
+    protected function jumlah(): Attribute
+    {
+        return Attribute::make(
+            set: fn ($nilai) => max(self::JUMLAH_MIN, min(self::JUMLAH_MAKS, (int) $nilai))
+        );
+    }
+
+    // Accessor: $item->subtotal_rupiah
+    protected function subtotalRupiah(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => 'Rp ' . number_format($this->subtotal(), 0, ',', '.')
         );
     }
 

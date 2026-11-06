@@ -1,64 +1,87 @@
-{{-- resources/views/pesanan/detail.blade.php --}}
+@extends('layouts.app')
+@section('title', 'Pesanan #' . $pesanan->id_pesanan)
 
-@extends('anggota2.layout')
+@push('styles')
+    @include('pesanan._gaya')
+@endpush
 
 @section('content')
-    <div class="container my-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2>Detail Pesanan #{{ $pesanan->id }}</h2>
-            <a href="{{ route('pesanan.riwayat') }}" class="btn btn-outline-secondary btn-sm">&laquo; Kembali ke Riwayat</a>
+@php
+    $rp = fn ($angka) => 'Rp' . number_format((float) $angka, 0, ',', '.');
+    $langkah = [
+        'baru'     => 'Pesanan diterima',
+        'diproses' => 'Sedang dimasak',
+        'siap'     => $pesanan->metode_pengambilan === 'antar' ? 'Siap diantar' : 'Siap diambil',
+        'selesai'  => 'Selesai',
+    ];
+    $urutan  = array_keys($langkah);
+    $posisi  = array_search($pesanan->status_pesanan, $urutan, true);
+    $bayar   = optional($pesanan->pembayaran);
+@endphp
+
+<section class="ps-sec">
+    <div class="wrap">
+        <div class="ps-top">
+            <div>
+                <span class="ps-eyebrow">Status pesanan</span>
+                <h1 class="ps-h1">Pesanan #{{ $pesanan->id_pesanan }}</h1>
+                <p class="ps-sub-t">{{ optional($pesanan->tanggal_pesanan)->format('d M Y, H:i') }}</p>
+            </div>
+            <a href="{{ route('pesanan.riwayat') }}" class="btn btn-ghost btn-sm"><x-icon name="arrow-left" /> Semua pesanan</a>
         </div>
 
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
-                <p class="mb-1"><strong>Tanggal Pesanan:</strong> {{ $pesanan->created_at->format('d M Y, H:i') }}</p>
-                <p class="mb-1">
-                    <strong>Status Pesanan:</strong> 
-                    <span class="badge bg-{{ $pesanan->status == 'selesai' ? 'success' : ($pesanan->status == 'batal' ? 'danger' : 'warning') }}">
-                        {{ ucfirst($pesanan->status) }}
-                    </span>
-                </p>
-                <p class="mb-0">
-                    <strong>Metode Pembayaran:</strong> {{ $pesanan->pembayaran->metode_pembayaran ?? '-' }} 
-                    (<span class="badge bg-{{ optional($pesanan->pembayaran)->status_pembayaran == 'lunas' ? 'success' : 'secondary' }}">
-                        {{ ucfirst(optional($pesanan->pembayaran)->status_pembayaran ?? 'Belum Dibayar') }}
-                    </span>)
-                </p>
-            </div>
+        @if (session('status'))
+            <div class="ps-alert ps-ok">{{ session('status') }}</div>
+        @endif
+
+        <div class="ps-card" style="margin-bottom:24px">
+            @if ($pesanan->status_pesanan === 'batal')
+                <span class="ps-badge batal">Pesanan dibatalkan</span>
+            @else
+                <div class="ps-track">
+                    @foreach ($langkah as $kode => $nama)
+                        @php
+                            $selesaiLangkah = $posisi !== false && $loop->index < $posisi;
+                            $sekarang       = $posisi !== false && $loop->index === $posisi;
+                        @endphp
+                        <div class="ps-step {{ $selesaiLangkah || $sekarang ? 'done' : '' }} {{ $sekarang ? 'now' : '' }}">
+                            <i></i>{{ $nama }}
+                        </div>
+                    @endforeach
+                </div>
+            @endif
         </div>
 
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title mb-3">Rincian Menu</h5>
-                <div class="table-responsive">
-                    <table class="table align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Menu</th>
-                                <th>Topping</th>
-                                <th>Level Pedas</th>
-                                <th>Jumlah</th>
-                                <th>Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($pesanan->detailPesanan as $detail)
-                                <tr>
-                                    <td>{{ $detail->menu->nama_menu ?? '-' }}</td>
-                                    <td>{{ $detail->topping->nama_topping ?? '-' }}</td>
-                                    <td>{{ $detail->levelPedas->nama_level ?? '-' }}</td>
-                                    <td>{{ $detail->jumlah }}</td>
-                                    <td>Rp{{ number_format($detail->subtotal, 0, ',', '.') }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-                <div class="d-flex justify-content-end align-items-center mt-3 pt-3 border-top">
-                    <h5 class="mb-0 me-3">Total:</h5>
-                    <h4 class="mb-0 text-success fw-bold">Rp{{ number_format($pesanan->total_harga, 0, ',', '.') }}</h4>
-                </div>
+        <div class="ps-grid">
+            <div class="ps-card">
+                <h2>Rincian pesanan</h2>
+                @foreach ($pesanan->detailPesanans as $detail)
+                    <div class="ps-mini-item">
+                        <span>
+                            {{ $detail->jumlah }}× {{ $detail->menu->nama_menu ?? 'Menu' }}
+                            <small>
+                                {{ $detail->levelPedas->nama_level ?? '-' }}@if ($detail->toppings->isNotEmpty()) · {{ $detail->toppings->pluck('nama_topping')->join(', ') }}@endif
+                            </small>
+                        </span>
+                        <strong>{{ $rp($detail->subtotal) }}</strong>
+                    </div>
+                @endforeach
+                <div class="ps-line total"><span>Total</span><span>{{ $rp($pesanan->total_harga) }}</span></div>
             </div>
+
+            <aside class="ps-card">
+                <h2>Informasi</h2>
+                <div class="ps-kv"><span>Penerimaan</span><span>{{ $pesanan->metode_pengambilan === 'antar' ? 'Pengantaran' : 'Ambil di kedai' }}</span></div>
+                @if ($pesanan->alamat)
+                    <div class="ps-kv"><span>Alamat</span><span>{{ $pesanan->alamat }}</span></div>
+                @endif
+                @if ($pesanan->catatan)
+                    <div class="ps-kv"><span>Catatan</span><span>{{ $pesanan->catatan }}</span></div>
+                @endif
+                <div class="ps-kv"><span>Pembayaran</span><span>{{ $bayar->metode_pembayaran ?? '-' }}</span></div>
+                <div class="ps-kv"><span>Status bayar</span><span><span class="ps-badge {{ $bayar->status_pembayaran }}">{{ ucfirst($bayar->status_pembayaran ?? 'menunggu') }}</span></span></div>
+            </aside>
         </div>
     </div>
+</section>
 @endsection

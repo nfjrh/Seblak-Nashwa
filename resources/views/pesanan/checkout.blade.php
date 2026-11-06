@@ -1,80 +1,105 @@
-{{-- resources/views/pesanan/checkout.blade.php --}}
+@extends('layouts.app')
+@section('title', 'Checkout')
 
-@extends('anggota2.layout')
+@push('styles')
+    @include('pesanan._gaya')
+@endpush
 
 @section('content')
-    <div class="container my-4">
-        <h2 class="mb-3">Checkout Pesanan</h2>
-        <p class="text-muted">Periksa kembali rincian pesanan Anda sebelum melanjutkan.</p>
+@php
+    $rp = fn ($angka) => 'Rp' . number_format((float) $angka, 0, ',', '.');
+    $pengambilan = old('metode_pengambilan', 'ambil');
+    $bayar       = old('metode_pembayaran', 'transfer');
+@endphp
 
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title mb-3">Ringkasan Pesanan</h5>
+<section class="ps-sec">
+    <div class="wrap">
+        <div class="ps-top">
+            <div>
+                <span class="ps-eyebrow">Checkout</span>
+                <h1 class="ps-h1">Satu langkah lagi, ya.</h1>
+                <p class="ps-sub-t">Pilih cara menerima pesanan dan metode pembayaran.</p>
+            </div>
+            <a href="{{ route('keranjang.index') }}" class="btn btn-ghost btn-sm"><x-icon name="arrow-left" /> Kembali ke keranjang</a>
+        </div>
 
-                {{-- Tabel Daftar Menu Dari Keranjang --}}
-                <div class="table-responsive mb-3">
-                    <table class="table table-bordered align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Menu</th>
-                                <th>Topping</th>
-                                <th>Level Pedas</th>
-                                <th>Jumlah</th>
-                                <th>Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($keranjangItems as $item)
-                                @php
-                                    $hargaMenu = $item->menu->harga ?? 0;
-                                    $hargaTopping = $item->topping->harga ?? 0;
-                                    $hargaLevel = $item->levelPedas->harga ?? 0;
-                                    $subtotal = ($hargaMenu + $hargaTopping + $hargaLevel) * $item->jumlah;
-                                @endphp
-                                <tr>
-                                    <td>{{ $item->menu->nama_menu ?? 'Menu' }}</td>
-                                    <td>{{ $item->topping->nama_topping ?? '-' }}</td>
-                                    <td>{{ $item->levelPedas->nama_level ?? '-' }}</td>
-                                    <td>{{ $item->jumlah }}</td>
-                                    <td>Rp{{ number_format($subtotal, 0, ',', '.') }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="5" class="text-center text-muted">
-                                        Keranjang belanja Anda masih kosong.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+        @if ($errors->any())
+            <div class="ps-alert">@foreach ($errors->all() as $pesan) <div>{{ $pesan }}</div> @endforeach</div>
+        @endif
 
-                {{-- Total Pembayaran --}}
-                <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-light rounded">
-                    <span class="fw-bold">Total Pembayaran:</span>
-                    <span class="fs-4 fw-bold text-success">
-                        Rp{{ number_format($totalHarga, 0, ',', '.') }}
-                    </span>
-                </div>
+        <form action="{{ route('checkout.process') }}" method="POST">
+            @csrf
+            <div class="ps-grid">
+                <div>
+                    <div class="ps-card">
+                        <h2>Cara menerima pesanan</h2>
+                        <div class="ps-choice">
+                            <label>
+                                <input type="radio" name="metode_pengambilan" value="ambil" {{ $pengambilan === 'ambil' ? 'checked' : '' }}>
+                                <span>Ambil di kedai<small>Datang saat pesanan siap</small></span>
+                            </label>
+                            <label>
+                                <input type="radio" name="metode_pengambilan" value="antar" {{ $pengambilan === 'antar' ? 'checked' : '' }}>
+                                <span>Pengantaran<small>Diantar ke alamatmu</small></span>
+                            </label>
+                        </div>
 
-                {{-- Form Kirim Pesanan --}}
-                <form action="{{ route('checkout.process') }}" method="POST">
-                    @csrf
+                        <div class="ps-field" id="kotak-alamat" style="{{ $pengambilan === 'antar' ? '' : 'display:none' }}">
+                            <label for="alamat">Alamat pengantaran</label>
+                            <textarea id="alamat" name="alamat" rows="3" placeholder="Jalan, nomor rumah, patokan">{{ old('alamat') }}</textarea>
+                        </div>
 
-                    <div class="mb-3">
-                        <label for="metode_pembayaran" class="form-label fw-semibold">Pilih Metode Pembayaran</label>
-                        <select name="metode_pembayaran" id="metode_pembayaran" class="form-select" required>
-                            <option value="Transfer Bank">Transfer Bank</option>
-                            <option value="E-Wallet">E-Wallet (QRIS / GoPay / OVO)</option>
-                            <option value="COD">Bayar di Tempat (COD)</option>
-                        </select>
+                        <div class="ps-field">
+                            <label for="catatan">Catatan untuk kedai (opsional)</label>
+                            <textarea id="catatan" name="catatan" rows="2" placeholder="Contoh: kuah dipisah, tanpa sayur">{{ old('catatan') }}</textarea>
+                        </div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary w-100" {{ $keranjangItems->isEmpty() ? 'disabled' : '' }}>
-                        Konfirmasi Pesanan
-                    </button>
-                </form>
+                    <div class="ps-card">
+                        <h2>Metode pembayaran</h2>
+                        <div class="ps-choice">
+                            @foreach ($metodeBayar as $kode => $nama)
+                                <label>
+                                    <input type="radio" name="metode_pembayaran" value="{{ $kode }}" {{ $bayar === $kode ? 'checked' : '' }}>
+                                    <span>{{ $nama }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                <aside class="ps-card ps-sum">
+                    <h2>Ringkasan pesanan</h2>
+                    @foreach ($items as $item)
+                        <div class="ps-mini-item">
+                            <span>
+                                {{ $item->jumlah }}× {{ $item->menu->nama_menu }}
+                                <small>
+                                    {{ $item->levelPedas->nama_level ?? '-' }}@if ($item->toppings->isNotEmpty()) · {{ $item->toppings->pluck('nama_topping')->join(', ') }}@endif
+                                </small>
+                            </span>
+                            <strong>{{ $rp($item->subtotal()) }}</strong>
+                        </div>
+                    @endforeach
+                    <div class="ps-line total"><span>Total</span><span>{{ $rp($total) }}</span></div>
+                    <button type="submit" class="btn btn-primary ps-btn-full">Buat Pesanan <x-icon name="arrow-right" /></button>
+                </aside>
             </div>
-        </div>
+        </form>
     </div>
+</section>
 @endsection
+
+@push('scripts')
+<script>
+    (function () {
+        var radios = document.querySelectorAll('input[name="metode_pengambilan"]');
+        var kotak = document.getElementById('kotak-alamat');
+        radios.forEach(function (r) {
+            r.addEventListener('change', function () {
+                kotak.style.display = document.querySelector('input[name="metode_pengambilan"]:checked').value === 'antar' ? '' : 'none';
+            });
+        });
+    })();
+</script>
+@endpush

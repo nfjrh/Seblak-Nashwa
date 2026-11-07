@@ -29,7 +29,7 @@ class AuthPelangganController extends Controller
         $identitas = trim($data['identitas']);
 
         $user = str_contains($identitas, '@')
-            ? User::where('email', Str::lower($identitas))->first()
+            ? User::cariByEmail($identitas)
             : User::where('nomor_hp', $this->normalisasiHp($identitas))->first();
 
         if (! $user || ! $this->passwordCocok($data['password'], $user->password)) {
@@ -38,7 +38,7 @@ class AuthPelangganController extends Controller
                 ->onlyInput('identitas');
         }
 
-        if ($user->role !== 'pembeli') {
+        if (! $user->isPembeli()) {
             return back()
                 ->withErrors(['identitas' => 'Akun admin masuk lewat halaman admin.'], 'masuk')
                 ->onlyInput('identitas');
@@ -82,14 +82,14 @@ class AuthPelangganController extends Controller
             'nomor_hp' => $data['nomor_hp'],
             'email'    => $data['email'] ?? null,
             'password' => $data['password'], // otomatis di-hash oleh model User
-            'role'     => 'pembeli',
+            'role'     => User::ROLE_PEMBELI,
         ]);
 
         Auth::login($user);
         $request->session()->regenerate();
 
         return redirect()->route('home')
-            ->with('status', 'Akun berhasil dibuat. Selamat datang, ' . Str::of($user->nama)->before(' ') . '!');
+            ->with('status', 'Akun berhasil dibuat. Selamat datang, ' . $user->nama_depan . '!');
     }
 
     public function logout(Request $request)

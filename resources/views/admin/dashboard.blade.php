@@ -44,7 +44,7 @@
                     <tr>
                         <td>{{ $pesanan->id_pesanan }}</td>
                         <td>{{ $pesanan->user->nama ?? '-' }}</td>
-                        <td>{{ $pesanan->tanggal_pesanan?->format('d M Y, H:i') }}</td>
+                        <td>{{ $pesanan->tanggal_pesanan ? \Carbon\Carbon::parse($pesanan->tanggal_pesanan)->format('d M Y, H:i') : '-' }}</td>
                         <td>Rp {{ number_format($pesanan->total_harga, 0, ',', '.') }}</td>
                         <td><span class="badge badge-{{ $pesanan->status_pesanan }}">{{ ucfirst($pesanan->status_pesanan) }}</span></td>
                     </tr>

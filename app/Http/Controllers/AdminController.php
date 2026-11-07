@@ -10,13 +10,18 @@ use App\Models\Pesanan;
 
 class AdminController extends Controller
 {
+    // Constructor: objek Pesanan disuntikkan otomatis oleh Laravel
+    public function __construct(private Pesanan $pesanan)
+    {
+    }
+
     public function dashboard()
     {
         if (!Auth::check()) {
             return redirect()->route('admin.login');
         }
 
-        if (Auth::user()->role !== 'admin') {
+        if (! Auth::user()->isAdmin()) {
             Auth::logout();
 
             return redirect()->route('admin.login')
@@ -26,14 +31,13 @@ class AdminController extends Controller
         }
 
         return view('admin.dashboard', [
-            'totalPesanan' => Pesanan::count(),
+            'totalPesanan' => $this->pesanan->count(),
 
-            'totalNilaiPesanan' => Pesanan::sum('total_harga'),
+            'totalNilaiPesanan' => $this->pesanan->sum('total_harga'),
 
             'pesananDiproses' => Pesanan::whereIn('status_pesanan', [
-                'diproses',
-                'disiapkan',
-                'siap dikirim',
+                Pesanan::STATUS_DIPROSES,
+                Pesanan::STATUS_SIAP,
             ])->count(),
 
             'totalMenu' => Menu::count(),
@@ -57,7 +61,7 @@ class AdminController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            if (Auth::user()->role !== 'admin') {
+            if (! Auth::user()->isAdmin()) {
                 Auth::logout();
 
                 $request->session()->invalidate();

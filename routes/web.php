@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminPesananController;
 use App\Http\Controllers\AuthPelangganController;
 use App\Http\Controllers\BerandaController;
 use App\Http\Controllers\KategoriController;
@@ -92,4 +93,10 @@ Route::middleware('auth')->group(function () {
 Route::prefix('admin')->name('admin.')->middleware(AdminOnly::class)->group(function () {
     Route::resource('topping', ToppingController::class)->except('show');
     Route::resource('level', LevelPedasController::class)->except('show');
+
+    // Pesanan masuk (admin)
+    Route::get('pesanan', [AdminPesananController::class, 'index'])->name('pesanan.index');
+    Route::get('pesanan/{id}', [AdminPesananController::class, 'show'])->whereNumber('id')->name('pesanan.show');
+    Route::patch('pesanan/{id}/status', [AdminPesananController::class, 'ubahStatus'])->whereNumber('id')->name('pesanan.status');
+    Route::patch('pesanan/{id}/pembayaran', [AdminPesananController::class, 'verifikasiPembayaran'])->whereNumber('id')->name('pesanan.pembayaran');
 });

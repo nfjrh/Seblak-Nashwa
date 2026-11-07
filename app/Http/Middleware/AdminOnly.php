@@ -15,7 +15,7 @@ class AdminOnly
             return redirect()->route('admin.login');
         }
 
-        if (Auth::user()->role !== 'admin') {
+        if (! Auth::user()->isAdmin()) {
             abort(403, 'Halaman ini hanya untuk admin.');
         }
 

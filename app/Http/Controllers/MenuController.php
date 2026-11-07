@@ -7,29 +7,25 @@ use App\Models\Menu;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
  
-class MenuController extends Controller
-{
-    public function index()
-    {
+class MenuController extends Controller {
+    public function index() {
         $menu = Menu::with('kategori')->get();
         return view('menu.index', compact('menu'));
     }
  
-    public function create()
-    {
+    public function create() {
         $kategori = Kategori::all();
         return view('menu.create', compact('kategori'));
     }
  
-    public function store(Request $request)
-    {
+    public function store(Request $request) {
         $data = $request->validate([
             'id_kategori' => 'required|exists:kategori,id_kategori',
             'nama_menu'   => 'required|string|max:150',
             'deskripsi'   => 'nullable|string',
             'harga'       => 'required|numeric|min:0',
             'gambar'      => 'nullable|image|max:2048',
-            'status'      => 'required|in:tersedia,habis',
+            'status'      => 'required|in:' . Menu::STATUS_TERSEDIA . ',' . Menu::STATUS_HABIS,
         ]);
  
         if ($request->hasFile('gambar')) {
@@ -42,21 +38,19 @@ class MenuController extends Controller
             ->with('success', 'Menu berhasil ditambahkan.');
     }
  
-    public function edit(Menu $menu)
-    {
+    public function edit(Menu $menu) {
         $kategori = Kategori::all();
         return view('menu.edit', compact('menu', 'kategori'));
     }
  
-    public function update(Request $request, Menu $menu)
-    {
+    public function update(Request $request, Menu $menu) {
         $data = $request->validate([
             'id_kategori' => 'required|exists:kategori,id_kategori',
             'nama_menu'   => 'required|string|max:150',
             'deskripsi'   => 'nullable|string',
             'harga'       => 'required|numeric|min:0',
             'gambar'      => 'nullable|image|max:2048',
-            'status'      => 'required|in:tersedia,habis',
+            'status'      => 'required|in:' . Menu::STATUS_TERSEDIA . ',' . Menu::STATUS_HABIS,
         ]);
  
         if ($request->hasFile('gambar')) {
@@ -72,8 +66,7 @@ class MenuController extends Controller
             ->with('success', 'Menu berhasil diubah.');
     }
  
-    public function destroy(Menu $menu)
-    {
+    public function destroy(Menu $menu) {
         if ($menu->gambar) {
             Storage::disk('public')->delete($menu->gambar);
         }

@@ -77,7 +77,7 @@ class CheckoutController extends Controller
                 $detail = DetailPesanan::create([
                     'id_pesanan' => $pesanan->id_pesanan,
                     'id_menu'    => $item->id_menu,
-                    'id_level'   => $item->id_level,
+                    'id_level'   => $item->id_level ?? null,
                     'jumlah'     => $item->jumlah,
                     'harga'      => $item->hargaSatuan(),
                     'subtotal'   => $item->subtotal(),

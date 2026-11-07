@@ -1,192 +1,136 @@
-@extends('layouts.app')
+@extends('layouts.pelanggan')
 
-@section('title', 'Masuk atau Daftar')
-
-{{-- navbar khusus halaman ini --}}
-@section('nav_links')
-    <a href="{{ url('/') }}#menu" class="active">Menu</a>
-    <a href="{{ Route::has('pesanan.riwayat') ? route('pesanan.riwayat') : route('login') }}">Pesanan saya</a>
-    <a href="{{ url('/') }}#tentang">Tentang kedai</a>
-@endsection
-
-@section('nav_action')
-    <a href="{{ route('home') }}" class="btn btn-outline"><x-icon name="arrow-left" /> Kembali ke menu</a>
-@endsection
+@section('title', 'Masuk')
 
 @section('content')
 @php
     $errMasuk  = $errors->getBag('masuk');
     $errDaftar = $errors->getBag('daftar');
-    $img = fn ($file) => file_exists(public_path('images/' . $file)) ? asset('images/' . $file) : null;
+    $tab = ($errDaftar->any() || request('tab') === 'daftar') ? 'daftar' : 'masuk';
 @endphp
+<div class="container py-4 py-md-5">
 
-<div class="wrap auth">
-    {{-- Banner sambutan --}}
-    <section class="auth-hero">
-        <div class="auth-hero-txt">
-            <span class="eyebrow">SELAMAT DATANG DI KEDAI KITA</span>
-            <h1>Kenalan dulu, lalu pesan yang enak.</h1>
-            <p>Masuk untuk melanjutkan pesanan, atau buat akun agar alamat dan riwayat pesananmu tersimpan rapi.</p>
-            <div class="chips">
-                <span><x-icon name="map-pin" /> Simpan alamatmu</span>
-                <span><x-icon name="receipt" /> Pantau setiap pesanan</span>
-            </div>
-        </div>
-        <div class="media media-auth">
-            <x-foto :src="$img('hero.jpg')" alt="Semangkuk seblak" />
+    <section class="nw-hero p-4 mb-4 mx-auto" style="max-width:860px">
+        <div class="nw-eyebrow mb-1">Selamat datang di kedai kita</div>
+        <h1 class="h2 fw-bold mb-2">Kenalan dulu, lalu pesan yang enak.</h1>
+        <p class="text-muted small mb-2">Masuk untuk melanjutkan pesanan, atau buat akun agar alamat dan riwayat pesananmu tersimpan rapi.</p>
+        <div class="d-flex flex-wrap gap-3 small fw-semibold">
+            <span><i class="bi bi-geo-alt-fill text-danger"></i> Simpan alamatmu</span>
+            <span><i class="bi bi-receipt text-danger"></i> Pantau setiap pesanan</span>
         </div>
     </section>
 
-    <div class="auth-grid">
-        {{-- ========== MASUK ========== --}}
-        <section class="card">
-            <span class="pill">Sudah punya akun</span>
-            <h2>Senang kamu kembali!</h2>
-            <p class="sub">Masuk dengan akun pelanggan Seblak Nashwa.</p>
+    <div class="nw-card p-3 p-md-4 mx-auto" style="max-width:520px">
+        <ul class="nav nav-pills nav-fill mb-4" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link {{ $tab === 'masuk' ? 'active' : '' }}" data-bs-toggle="pill" data-bs-target="#tab-masuk" type="button" role="tab">Masuk</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link {{ $tab === 'daftar' ? 'active' : '' }}" data-bs-toggle="pill" data-bs-target="#tab-daftar" type="button" role="tab">Daftar</button>
+            </li>
+        </ul>
 
-            <form action="{{ route('login.submit') }}" method="POST" novalidate>
-                @csrf
+        <div class="tab-content">
+            {{-- Masuk --}}
+            <div class="tab-pane fade {{ $tab === 'masuk' ? 'show active' : '' }}" id="tab-masuk" role="tabpanel">
+                <h2 class="h4 mb-1">Senang kamu kembali!</h2>
+                <p class="text-muted small mb-3">Masuk dengan akun pelanggan Seblak Nashwa.</p>
 
-                <div class="field">
-                    <label for="identitas">Nomor WhatsApp atau email</label>
-                    <div class="input">
+                @if ($errMasuk->any())
+                    <div class="alert alert-danger py-2 small">{{ $errMasuk->first() }}</div>
+                @endif
+
+                <form action="{{ route('login.submit') }}" method="POST" novalidate>
+                    @csrf
+                    <div class="mb-3">
+                        <label for="identitas" class="form-label">Nomor WhatsApp atau email</label>
                         <input type="text" id="identitas" name="identitas" value="{{ old('identitas') }}"
-                               placeholder="Contoh: 081234567890" autocomplete="username" required>
-                        <x-icon name="user" />
+                               class="form-control" placeholder="Contoh: 081234567890" autocomplete="username">
                     </div>
-                    @if ($errMasuk->has('identitas')) <p class="err">{{ $errMasuk->first('identitas') }}</p> @endif
-                </div>
-
-                <div class="field">
-                    <label for="login-password">Kata sandi</label>
-                    <div class="input">
-                        <input type="password" id="login-password" name="password"
-                               placeholder="Masukkan kata sandi" autocomplete="current-password" required>
-                        <button type="button" class="eye" data-target="login-password" aria-label="Tampilkan kata sandi">
-                            <x-icon name="eye-off" />
-                        </button>
-                    </div>
-                    @if ($errMasuk->has('password')) <p class="err">{{ $errMasuk->first('password') }}</p> @endif
-                </div>
-
-                <div class="row-between">
-                    <label class="check"><input type="checkbox" name="ingat" value="1"> Ingat saya</label>
-                    <a href="#" class="red-link">Lupa kata sandi?</a>
-                </div>
-
-                <button type="submit" class="btn btn-primary btn-block"><x-icon name="arrow-right" /> Masuk &amp; lanjut pesan</button>
-            </form>
-
-            <hr class="sep">
-            <p class="small center">Belum punya akun? Isi formulir daftar di sebelah untuk mulai memesan.</p>
-        </section>
-
-        {{-- ========== DAFTAR ========== --}}
-        <section class="card" id="daftar">
-            <span class="pill">Baru di sini?</span>
-            <h2>Yuk, buat akun pelanggan.</h2>
-            <p class="sub">Daftar sebentar, pesan favoritmu jadi lebih mudah.</p>
-
-            <form action="{{ route('register.submit') }}" method="POST" novalidate>
-                @csrf
-
-                <div class="field">
-                    <label for="nama">Nama lengkap</label>
-                    <div class="input">
-                        <input type="text" id="nama" name="nama" value="{{ old('nama') }}"
-                               placeholder="Masukkan nama lengkap" autocomplete="name" required>
-                    </div>
-                    @if ($errDaftar->has('nama')) <p class="err">{{ $errDaftar->first('nama') }}</p> @endif
-                </div>
-
-                <div class="two">
-                    <div class="field">
-                        <label for="nomor_hp">Nomor WhatsApp</label>
-                        <div class="input">
-                            <input type="tel" id="nomor_hp" name="nomor_hp" value="{{ old('nomor_hp') }}"
-                                   placeholder="Contoh: 081234567890" autocomplete="tel" required>
+                    <div class="mb-3">
+                        <label for="login-password" class="form-label">Kata sandi</label>
+                        <div class="input-group">
+                            <input type="password" id="login-password" name="password" class="form-control" placeholder="Masukkan kata sandi" autocomplete="current-password">
+                            <button class="btn btn-outline-dark js-lihat" type="button" data-target="login-password" aria-label="Tampilkan kata sandi"><i class="bi bi-eye"></i></button>
                         </div>
-                        @if ($errDaftar->has('nomor_hp')) <p class="err">{{ $errDaftar->first('nomor_hp') }}</p> @endif
                     </div>
-
-                    <div class="field">
-                        <label for="email">Email (opsional)</label>
-                        <div class="input">
-                            <input type="email" id="email" name="email" value="{{ old('email') }}"
-                                   placeholder="nama@email.com" autocomplete="email">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="ingat" value="1" id="ingat">
+                            <label class="form-check-label small" for="ingat">Ingat saya</label>
                         </div>
-                        @if ($errDaftar->has('email')) <p class="err">{{ $errDaftar->first('email') }}</p> @endif
+                        <a href="#" class="small fw-bold js-segera">Lupa kata sandi?</a>
                     </div>
-                </div>
+                    <button type="submit" class="btn btn-primary w-100 py-2">Masuk &amp; lanjut pesan <i class="bi bi-arrow-right"></i></button>
+                </form>
+                <p class="small text-center text-muted mt-3 mb-0">Belum punya akun? Buka tab <strong>Daftar</strong> untuk mulai memesan.</p>
+            </div>
 
-                <div class="field">
-                    <label for="reg-password">Kata sandi</label>
-                    <div class="input">
-                        <input type="password" id="reg-password" name="password"
-                               placeholder="Buat kata sandi" autocomplete="new-password" required>
-                        <button type="button" class="eye" data-target="reg-password" aria-label="Tampilkan kata sandi">
-                            <x-icon name="eye-off" />
-                        </button>
+            {{-- Daftar --}}
+            <div class="tab-pane fade {{ $tab === 'daftar' ? 'show active' : '' }}" id="tab-daftar" role="tabpanel">
+                <h2 class="h4 mb-1">Yuk, buat akun pelanggan.</h2>
+                <p class="text-muted small mb-3">Daftar sebentar, pesan favoritmu jadi lebih mudah.</p>
+
+                @if ($errDaftar->any())
+                    <div class="alert alert-danger small py-2">
+                        <ul class="mb-0 ps-3">@foreach ($errDaftar->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
                     </div>
-                    <p class="hint">Minimal 8 karakter, gunakan kombinasi huruf dan angka.</p>
-                    @if ($errDaftar->has('password')) <p class="err">{{ $errDaftar->first('password') }}</p> @endif
-                </div>
+                @endif
 
-                <div class="field">
-                    <label for="reg-password2">Konfirmasi kata sandi</label>
-                    <div class="input">
-                        <input type="password" id="reg-password2" name="password_confirmation"
-                               placeholder="Ulangi kata sandi" autocomplete="new-password" required>
-                        <button type="button" class="eye" data-target="reg-password2" aria-label="Tampilkan kata sandi">
-                            <x-icon name="eye-off" />
-                        </button>
+                <form action="{{ route('register.submit') }}" method="POST" novalidate>
+                    @csrf
+                    <div class="mb-3">
+                        <label for="nama" class="form-label">Nama lengkap</label>
+                        <input type="text" id="nama" name="nama" value="{{ old('nama') }}" class="form-control" placeholder="Masukkan nama lengkap" autocomplete="name">
                     </div>
-                </div>
-
-                <label class="check check-small">
-                    <input type="checkbox" name="setuju" value="1" {{ old('setuju') ? 'checked' : '' }}>
-                    Saya menyetujui ketentuan penggunaan dan kebijakan privasi Seblak Nashwa.
-                </label>
-                @if ($errDaftar->has('setuju')) <p class="err">{{ $errDaftar->first('setuju') }}</p> @endif
-
-                <button type="submit" class="btn btn-primary btn-block"><x-icon name="arrow-right" /> Daftar &amp; mulai pesan</button>
-            </form>
-
-            <p class="small center secure"><x-icon name="shield" /> Data kamu hanya digunakan untuk kebutuhan pemesanan.</p>
-        </section>
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-sm-6">
+                            <label for="nomor_hp" class="form-label">Nomor WhatsApp</label>
+                            <input type="tel" id="nomor_hp" name="nomor_hp" value="{{ old('nomor_hp') }}" class="form-control" placeholder="Contoh: 081234567890" autocomplete="tel">
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label for="email" class="form-label">Email <span class="text-muted fw-normal">(opsional)</span></label>
+                            <input type="email" id="email" name="email" value="{{ old('email') }}" class="form-control" placeholder="nama@email.com" autocomplete="email">
+                        </div>
+                    </div>
+                    <div class="mb-1">
+                        <label for="reg-password" class="form-label">Kata sandi</label>
+                        <div class="input-group">
+                            <input type="password" id="reg-password" name="password" class="form-control" placeholder="Buat kata sandi" autocomplete="new-password">
+                            <button class="btn btn-outline-dark js-lihat" type="button" data-target="reg-password" aria-label="Tampilkan kata sandi"><i class="bi bi-eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="form-text mb-3">Minimal 8 karakter, gunakan kombinasi huruf dan angka.</div>
+                    <div class="mb-3">
+                        <label for="reg-password2" class="form-label">Konfirmasi kata sandi</label>
+                        <div class="input-group">
+                            <input type="password" id="reg-password2" name="password_confirmation" class="form-control" placeholder="Ulangi kata sandi" autocomplete="new-password">
+                            <button class="btn btn-outline-dark js-lihat" type="button" data-target="reg-password2" aria-label="Tampilkan kata sandi"><i class="bi bi-eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="setuju" value="1" id="setuju" {{ old('setuju') ? 'checked' : '' }}>
+                        <label class="form-check-label small" for="setuju">Saya menyetujui ketentuan penggunaan dan kebijakan privasi Seblak Nashwa.</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-2">Daftar &amp; mulai pesan <i class="bi bi-arrow-right"></i></button>
+                </form>
+                <p class="small text-center text-muted mt-3 mb-0"><i class="bi bi-shield-check"></i> Data kamu hanya digunakan untuk kebutuhan pemesanan.</p>
+            </div>
+        </div>
     </div>
 </div>
 @endsection
 
-{{-- footer sederhana khusus halaman ini --}}
-@section('footer')
-    <footer class="foot foot-simple">
-        <div class="wrap foot-bottom">
-            <span>© {{ date('Y') }} Seblak Nashwa · Dibuat hangat, disajikan sepenuh hati.</span>
-            <span class="foot-links">
-                <a href="{{ url('/') }}#faq">Bantuan pemesanan</a>
-                <a href="#">Kebijakan privasi</a>
-                <a href="{{ route('admin.login') }}" class="red-link">Masuk admin <x-icon name="arrow-up-right" /></a>
-            </span>
-        </div>
-    </footer>
-@endsection
-
 @push('scripts')
 <script>
-    // tombol mata: tampilkan / sembunyikan kata sandi
-    document.querySelectorAll('.eye').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            var input = document.getElementById(btn.dataset.target);
-            var tampil = input.type === 'password';
-            input.type = tampil ? 'text' : 'password';
-            btn.setAttribute('aria-label', tampil ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
+    // Tombol mata: tampilkan atau sembunyikan kata sandi
+    document.querySelectorAll('.js-lihat').forEach(function (tombol) {
+        tombol.addEventListener('click', function () {
+            const kolom = document.getElementById(this.dataset.target);
+            const lihat = kolom.type === 'password';
+            kolom.type = lihat ? 'text' : 'password';
+            this.innerHTML = lihat ? '<i class="bi bi-eye-slash"></i>' : '<i class="bi bi-eye"></i>';
         });
     });
-
-    // kalau pendaftaran gagal, langsung gulir ke formulir daftar
-    @if ($errors->getBag('daftar')->any())
-        document.getElementById('daftar').scrollIntoView({ block: 'start' });
-    @endif
 </script>
 @endpush

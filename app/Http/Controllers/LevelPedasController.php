@@ -7,17 +7,27 @@ use Illuminate\Http\Request;
 
 class LevelPedasController extends Controller
 {
+    // Constructor: objek LevelPedas disuntikkan otomatis oleh Laravel
+    public function __construct(private LevelPedas $model)
+    {
+    }
+
     private function aturan(): array
     {
         return [
             'nama_level'     => 'required|string|max:100',
-            'tambahan_harga' => 'required|numeric|min:0',
+            'tambahan_harga' => 'required|numeric|min:0|max:' . LevelPedas::TAMBAHAN_HARGA_MAKS,
         ];
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $levels = LevelPedas::orderBy('id_level')->get();
+        // Urut harga: /admin/level?urut=harga
+        $query = $request->query('urut') === 'harga'
+            ? LevelPedas::urutHarga()
+            : $this->model->newQuery()->orderBy('id_level');
+
+        $levels = $query->get();
         return view('admin.level.index', compact('levels'));
     }
 

@@ -56,20 +56,21 @@ class KedaiSeeder extends Seeder
 
         // Menu
         $menus = [
-            [$seblak,  'Seblak Komplit',     'Kerupuk, mi, telur, bakso & sosis.',      18000],
-            [$seblak,  'Seblak Original',    'Kerupuk, makaroni, telur & sayur.',       12000],
-            [$seblak,  'Seblak Ceker',       'Cekernya empuk, kerupuk, telur & sayur.', 16000],
-            [$seblak,  'Seblak Bakso Sosis', 'Bakso, sosis, kerupuk & telur.',          15000],
-            [$minuman, 'Es Teh Manis',       'Teh segar, teman makan pedas.',            5000],
+            [$seblak,  'Seblak Komplit',     'Kerupuk, mi, telur, bakso & sosis.',      18000, 'seblak-komplit.png'],
+            [$seblak,  'Seblak Original',    'Kerupuk, makaroni, telur & sayur.',       12000, 'seblak-original.png'],
+            [$seblak,  'Seblak Ceker',       'Cekernya empuk, kerupuk, telur & sayur.', 16000, 'seblak-ceker.png'],
+            [$seblak,  'Seblak Bakso Sosis', 'Bakso, sosis, kerupuk & telur.',          15000, 'seblak-bakso-sosis.png'],
+            [$minuman, 'Es Teh Manis',       'Teh segar, teman makan pedas.',            5000, 'es-teh-manis.png'],
         ];
 
-        foreach ($menus as [$kategori, $nama, $deskripsi, $harga]) {
+        foreach ($menus as [$kategori, $nama, $deskripsi, $harga, $foto]) {
             Menu::updateOrCreate(
                 ['nama_menu' => $nama],
                 [
                     'id_kategori' => $kategori->id_kategori,
                     'deskripsi'   => $deskripsi,
                     'harga'       => $harga,
+                    'gambar'      => 'images/menu/' . $foto,
                     'status'      => 'tersedia',
                 ]
             );

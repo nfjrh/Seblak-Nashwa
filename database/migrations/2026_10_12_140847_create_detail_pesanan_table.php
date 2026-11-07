@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id('id_detail');
             $table->foreignId('id_pesanan')->constrained('pesanan', 'id_pesanan')->cascadeOnDelete();
             $table->foreignId('id_menu')->constrained('menu', 'id_menu');
-            $table->foreignId('id_level')->constrained('level_pedas', 'id_level');
+            $table->foreignId('id_level')->nullable()->constrained('level_pedas', 'id_level');
             $table->unsignedInteger('jumlah')->default(1);
             $table->decimal('harga', 10, 2);
             $table->decimal('subtotal', 10, 2);

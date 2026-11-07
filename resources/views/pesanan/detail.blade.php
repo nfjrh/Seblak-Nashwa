@@ -95,7 +95,7 @@
                     <div class="text-end">
                         <div class="nw-price fs-4">{{ $rp($pesanan->total_harga) }}</div>
                         @if ($pembayaran)
-                            <div class="small text-muted">{{ $pembayaran->metode_pembayaran }} · {{ ucfirst($pembayaran->status_pembayaran) }}</div>
+                            <div class="small text-muted">QRIS</div>
                         @endif
                     </div>
                 </div>

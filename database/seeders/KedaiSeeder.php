@@ -17,8 +17,9 @@ class KedaiSeeder extends Seeder
 {
     public function run(): void
     {
-        $seblak  = Kategori::firstOrCreate(['nama_kategori' => 'Seblak']);
+        $seblak  = Kategori::firstOrCreate(['nama_kategori' => Kategori::SEBLAK]);
         $minuman = Kategori::firstOrCreate(['nama_kategori' => 'Minuman']);
+        $tambahan = Kategori::firstOrCreate(['nama_kategori' => 'Topping']);
 
         // Level pedas 0 sampai 5.
         // Hapus dulu level contoh dari DatabaseSeeder (misalnya "Level 0 (Tidak Pedas)")
@@ -61,6 +62,7 @@ class KedaiSeeder extends Seeder
             [$seblak,  'Seblak Ceker',       'Cekernya empuk, kerupuk, telur & sayur.', 16000, 'seblak-ceker.png'],
             [$seblak,  'Seblak Bakso Sosis', 'Bakso, sosis, kerupuk & telur.',          15000, 'seblak-bakso-sosis.png'],
             [$minuman, 'Es Teh Manis',       'Teh segar, teman makan pedas.',            5000, 'es-teh-manis.png'],
+            [$tambahan, 'Topping Ceker',     '2 ceker empuk untuk seblakmu.',            3000, 'topping-ceker.png'],
         ];
 
         foreach ($menus as [$kategori, $nama, $deskripsi, $harga, $foto]) {

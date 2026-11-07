@@ -10,7 +10,7 @@
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 small">
         <div class="d-flex align-items-center gap-2">
             <span class="nw-badge nw-badge-hijau">Buka sekarang</span>
-            <span class="text-muted">Setiap hari · 10.00–21.00 WIB</span>
+            <span class="text-muted">Setiap hari · 10.00–21.00 WITA</span>
         </div>
         <span class="text-danger fw-semibold"><i class="bi bi-geo-alt-fill"></i> Ambil di outlet atau antar ke rumah</span>
     </div>

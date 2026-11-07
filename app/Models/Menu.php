@@ -49,6 +49,13 @@ class Menu extends Model {
         );
     }
 
+    // Hanya menu kategori Seblak yang bisa diracik (pilih level pedas dan topping).
+    // Minuman dan topping langsung dipesan tanpa level pedas.
+    public function bisaDiracik(): bool
+    {
+        return $this->kategori?->nama_kategori === Kategori::SEBLAK;
+    }
+
     // Static method: Menu::cariDanFilter($idKategori, $kata)->get()
     public static function cariDanFilter($idKategori = null, ?string $kata = null)
     {
@@ -56,14 +63,6 @@ class Menu extends Model {
             ->when($idKategori, fn ($q, $id) => $q->where('id_kategori', $id))
             ->when($kata, fn ($q, $k) => $q->where('nama_menu', 'like', '%' . $k . '%'));
     }
-
-    /**
-     * URL foto menu. Mendukung dua cara penyimpanan:
-     * 1. Foto upload dari form admin, tersimpan di storage (contoh: menu/abc.jpg),
-     *    dan tampil lewat folder public/storage (butuh: php artisan storage:link).
-     * 2. Foto manual di folder public (contoh: images/menu/seblak.jpg).
-     * Kalau file tidak ditemukan, hasilnya null dan tampilan memakai gambar pengganti.
-     */
 
     public function fotoUrl(): ?string {
         if (! $this->gambar) {

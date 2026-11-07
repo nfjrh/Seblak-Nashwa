@@ -1,50 +1,44 @@
-@extends('layouts.app')
-@section('title', 'Pesanan Saya')
+@extends('layouts.pelanggan')
 
-@push('styles')
-    @include('pesanan._gaya')
-@endpush
+@section('title', 'Pesanan Saya')
 
 @section('content')
 @php
-    $rp = fn ($angka) => 'Rp' . number_format((float) $angka, 0, ',', '.');
-    $labelStatus = ['baru' => 'Pesanan diterima', 'diproses' => 'Sedang dimasak', 'siap' => 'Siap', 'selesai' => 'Selesai', 'batal' => 'Dibatalkan'];
+    $rp = fn ($v) => 'Rp' . number_format($v, 0, ',', '.');
+    $label = ['baru' => 'Diterima', 'diproses' => 'Disiapkan', 'siap' => 'Siap', 'selesai' => 'Selesai', 'batal' => 'Dibatalkan'];
+    $kelas = ['selesai' => 'nw-badge-hijau', 'batal' => 'nw-badge-abu'];
 @endphp
+<div class="container py-4">
+    <div class="nw-eyebrow mb-1">Pesanan saya</div>
+    <h1 class="display-6 fw-bold mb-1">Riwayat pesananmu</h1>
+    <p class="text-muted mb-4">Pantau pesanan yang sedang berjalan dan lihat pesanan sebelumnya.</p>
 
-<section class="ps-sec">
-    <div class="wrap">
-        <div class="ps-top">
-            <div>
-                <span class="ps-eyebrow">Riwayat</span>
-                <h1 class="ps-h1">Pesanan saya</h1>
-                <p class="ps-sub-t">Semua pesananmu beserta statusnya.</p>
+    @forelse ($pesanans as $p)
+        <a href="{{ route('pesanan.detail', $p->id_pesanan) }}" class="nw-card d-block p-3 p-md-4 mb-3 text-reset">
+            <div class="row align-items-center g-2">
+                <div class="col-12 col-md-4">
+                    <div class="fw-bold">#NSW-{{ str_pad($p->id_pesanan, 4, '0', STR_PAD_LEFT) }}</div>
+                    <div class="small text-muted">{{ optional($p->tanggal_pesanan)->format('d M Y · H.i') }} WIB</div>
+                </div>
+                <div class="col-6 col-md-3 small text-muted">
+                    {{ $p->detail_pesanans_count }} menu ·
+                    {{ $p->metode_pengambilan === 'antar' ? 'Pengantaran' : 'Ambil sendiri' }}
+                </div>
+                <div class="col-6 col-md-2 nw-price text-md-end">{{ $rp($p->total_harga) }}</div>
+                <div class="col-12 col-md-3 d-flex justify-content-between justify-content-md-end align-items-center gap-3">
+                    <span class="nw-badge {{ $kelas[$p->status_pesanan] ?? '' }}">{{ $label[$p->status_pesanan] ?? ucfirst($p->status_pesanan) }}</span>
+                    <span class="small fw-bold text-danger">Lihat detail <i class="bi bi-arrow-right"></i></span>
+                </div>
             </div>
-            <a href="{{ route('katalog.index') }}" class="btn btn-primary btn-sm">Pesan lagi <x-icon name="arrow-right" /></a>
+        </a>
+    @empty
+        <div class="nw-card p-5 text-center">
+            <i class="bi bi-receipt fs-1 text-muted"></i>
+            <h2 class="h5 mt-2">Belum ada pesanan</h2>
+            <p class="text-muted">Pesanan pertamamu akan muncul di sini.</p>
+            <a href="{{ route('katalog.index') }}" class="btn btn-primary">Mulai pesan</a>
         </div>
+    @endforelse
+</div>
 
-        @if (session('status'))
-            <div class="ps-alert ps-ok">{{ session('status') }}</div>
-        @endif
-
-        @forelse ($pesanans as $pesanan)
-            <a href="{{ route('pesanan.detail', $pesanan->id_pesanan) }}" class="ps-order">
-                <div>
-                    <strong>Pesanan #{{ $pesanan->id_pesanan }}</strong>
-                    <small>{{ optional($pesanan->tanggal_pesanan)->format('d M Y, H:i') }} · {{ $pesanan->detail_pesanans_count }} menu</small>
-                </div>
-                <div class="ps-badges">
-                    <span class="ps-badge {{ $pesanan->status_pesanan }}">{{ $labelStatus[$pesanan->status_pesanan] ?? ucfirst($pesanan->status_pesanan) }}</span>
-                    <span class="ps-badge {{ optional($pesanan->pembayaran)->status_pembayaran }}">Bayar: {{ ucfirst(optional($pesanan->pembayaran)->status_pembayaran ?? 'menunggu') }}</span>
-                </div>
-                <div class="ps-tot">{{ $rp($pesanan->total_harga) }}</div>
-            </a>
-        @empty
-            <div class="ps-empty">
-                <h2>Belum ada pesanan</h2>
-                <p>Pesananmu akan muncul di sini setelah kamu checkout.</p>
-                <a href="{{ route('katalog.index') }}" class="btn btn-primary">Lihat menu <x-icon name="arrow-right" /></a>
-            </div>
-        @endforelse
-    </div>
-</section>
 @endsection

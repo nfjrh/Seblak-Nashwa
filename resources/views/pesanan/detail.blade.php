@@ -1,87 +1,127 @@
-@extends('layouts.app')
-@section('title', 'Pesanan #' . $pesanan->id_pesanan)
+@extends('layouts.pelanggan')
 
-@push('styles')
-    @include('pesanan._gaya')
-@endpush
+@section('title', 'Status Pesanan')
 
 @section('content')
 @php
-    $rp = fn ($angka) => 'Rp' . number_format((float) $angka, 0, ',', '.');
+    $rp = fn ($v) => 'Rp' . number_format($v, 0, ',', '.');
+    $nomor = '#NSW-' . str_pad($pesanan->id_pesanan, 4, '0', STR_PAD_LEFT);
+    $status = $pesanan->status_pesanan;
+    $batal = $status === 'batal';
+
+    // Urutan perjalanan pesanan (status di database -> tampilan di desain)
     $langkah = [
-        'baru'     => 'Pesanan diterima',
-        'diproses' => 'Sedang dimasak',
-        'siap'     => $pesanan->metode_pengambilan === 'antar' ? 'Siap diantar' : 'Siap diambil',
-        'selesai'  => 'Selesai',
+        ['kunci' => 'baru',     'judul' => 'Diterima',               'ikon' => 'bi-check-lg',     'ket' => 'Pesanan masuk'],
+        ['kunci' => 'diproses', 'judul' => 'Disiapkan',              'ikon' => 'bi-cup-hot',      'ket' => 'Sedang dimasak'],
+        ['kunci' => 'siap',     'judul' => 'Siap diambil / dikirim', 'ikon' => 'bi-bicycle',      'ket' => 'Menunggu serah terima'],
+        ['kunci' => 'selesai',  'judul' => 'Selesai',                'ikon' => 'bi-fork-knife',   'ket' => 'Selamat menikmati!'],
     ];
-    $urutan  = array_keys($langkah);
-    $posisi  = array_search($pesanan->status_pesanan, $urutan, true);
-    $bayar   = optional($pesanan->pembayaran);
+    $posisi = array_search($status, array_column($langkah, 'kunci'));
+    $posisi = $posisi === false ? -1 : $posisi;
+
+    $banner = [
+        'baru'     => ['Pesananmu sudah kami terima', 'Kedai akan segera mengonfirmasi dan mulai memasak.'],
+        'diproses' => ['Dapur lagi sibuk bikin yang enak.', 'Pesananmu sedang dimasak. Kami akan memperbarui status saat siap.'],
+        'siap'     => ['Pesananmu sudah siap!', 'Silakan diambil, atau tunggu pengantar sampai di alamatmu.'],
+        'selesai'  => ['Selamat menikmati!', 'Pesananmu sudah selesai. Terima kasih sudah memesan di Seblak Nashwa.'],
+        'batal'    => ['Pesanan dibatalkan', 'Pesanan ini tidak diproses. Hubungi kedai bila ada pertanyaan.'],
+    ][$status] ?? ['Status pesanan', 'Pantau pesananmu di sini.'];
+    $pembayaran = $pesanan->pembayaran;
 @endphp
-
-<section class="ps-sec">
-    <div class="wrap">
-        <div class="ps-top">
-            <div>
-                <span class="ps-eyebrow">Status pesanan</span>
-                <h1 class="ps-h1">Pesanan #{{ $pesanan->id_pesanan }}</h1>
-                <p class="ps-sub-t">{{ optional($pesanan->tanggal_pesanan)->format('d M Y, H:i') }}</p>
-            </div>
-            <a href="{{ route('pesanan.riwayat') }}" class="btn btn-ghost btn-sm"><x-icon name="arrow-left" /> Semua pesanan</a>
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-4">
+        <div>
+            <div class="nw-eyebrow mb-1">Pesanan saya</div>
+            <h1 class="display-6 fw-bold mb-1">{{ $banner[0] }}</h1>
+            <p class="text-muted mb-0">{{ $banner[1] }}</p>
         </div>
-
-        @if (session('status'))
-            <div class="ps-alert ps-ok">{{ session('status') }}</div>
-        @endif
-
-        <div class="ps-card" style="margin-bottom:24px">
-            @if ($pesanan->status_pesanan === 'batal')
-                <span class="ps-badge batal">Pesanan dibatalkan</span>
-            @else
-                <div class="ps-track">
-                    @foreach ($langkah as $kode => $nama)
-                        @php
-                            $selesaiLangkah = $posisi !== false && $loop->index < $posisi;
-                            $sekarang       = $posisi !== false && $loop->index === $posisi;
-                        @endphp
-                        <div class="ps-step {{ $selesaiLangkah || $sekarang ? 'done' : '' }} {{ $sekarang ? 'now' : '' }}">
-                            <i></i>{{ $nama }}
-                        </div>
-                    @endforeach
-                </div>
-            @endif
-        </div>
-
-        <div class="ps-grid">
-            <div class="ps-card">
-                <h2>Rincian pesanan</h2>
-                @foreach ($pesanan->detailPesanans as $detail)
-                    <div class="ps-mini-item">
-                        <span>
-                            {{ $detail->jumlah }}× {{ $detail->menu->nama_menu ?? 'Menu' }}
-                            <small>
-                                {{ $detail->levelPedas->nama_level ?? '-' }}@if ($detail->toppings->isNotEmpty()) · {{ $detail->toppings->pluck('nama_topping')->join(', ') }}@endif
-                            </small>
-                        </span>
-                        <strong>{{ $rp($detail->subtotal) }}</strong>
-                    </div>
-                @endforeach
-                <div class="ps-line total"><span>Total</span><span>{{ $rp($pesanan->total_harga) }}</span></div>
-            </div>
-
-            <aside class="ps-card">
-                <h2>Informasi</h2>
-                <div class="ps-kv"><span>Penerimaan</span><span>{{ $pesanan->metode_pengambilan === 'antar' ? 'Pengantaran' : 'Ambil di kedai' }}</span></div>
-                @if ($pesanan->alamat)
-                    <div class="ps-kv"><span>Alamat</span><span>{{ $pesanan->alamat }}</span></div>
-                @endif
-                @if ($pesanan->catatan)
-                    <div class="ps-kv"><span>Catatan</span><span>{{ $pesanan->catatan }}</span></div>
-                @endif
-                <div class="ps-kv"><span>Pembayaran</span><span>{{ $bayar->metode_pembayaran ?? '-' }}</span></div>
-                <div class="ps-kv"><span>Status bayar</span><span><span class="ps-badge {{ $bayar->status_pembayaran }}">{{ ucfirst($bayar->status_pembayaran ?? 'menunggu') }}</span></span></div>
-            </aside>
+        <div class="text-md-end">
+            <div class="h4 fw-bold mb-0">{{ $nomor }}</div>
+            <div class="small text-muted">{{ optional($pesanan->tanggal_pesanan)->format('d M Y · H.i') }} WIB</div>
         </div>
     </div>
-</section>
+
+    {{-- Perjalanan pesanan --}}
+    <div class="nw-card p-3 p-md-4 mb-4">
+        <h2 class="h5 mb-4">Perjalanan pesananmu</h2>
+        @if ($batal)
+            <div class="d-flex align-items-center gap-3">
+                <span class="nw-tl-dot" style="background:#FDEBE6;color:#C63E2A"><i class="bi bi-x-lg"></i></span>
+                <div><div class="fw-bold text-danger">Dibatalkan</div><div class="small text-muted">Pesanan ini tidak dilanjutkan.</div></div>
+            </div>
+        @else
+            <div class="nw-timeline">
+                @foreach ($langkah as $i => $l)
+                    <div class="nw-tl-item {{ $i < $posisi ? 'done' : ($i === $posisi ? ($status === 'selesai' ? 'done' : 'now') : '') }}">
+                        <span class="nw-tl-dot"><i class="bi {{ $i < $posisi || ($i === $posisi && $status === 'selesai') ? 'bi-check-lg' : $l['ikon'] }}"></i></span>
+                        <div class="nw-tl-label mt-2">{{ $l['judul'] }}</div>
+                        <div class="text-muted" style="font-size:.7rem">{{ $l['ket'] }}</div>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+    </div>
+
+    <div class="row g-4">
+        {{-- Rincian --}}
+        <div class="col-12 col-lg-8">
+            <div class="nw-card p-3 p-md-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2 class="h5 mb-0">Rincian pesanan</h2>
+                    <span class="small text-muted">{{ $pesanan->detailPesanans->count() }} menu · {{ $pesanan->detailPesanans->sum('jumlah') }} item</span>
+                </div>
+                <hr>
+                @foreach ($pesanan->detailPesanans as $d)
+                    <div class="d-flex gap-3 align-items-center py-2">
+                        <div style="width:56px;flex:none"><x-foto-menu :menu="$d->menu" rasio="1x1" class="rounded-3" /></div>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold small">{{ $d->menu->nama_menu ?? 'Menu' }}</div>
+                            <div class="text-muted" style="font-size:.75rem">
+                                {{ $d->levelPedas->nama_level ?? '' }}@if ($d->toppings->isNotEmpty()) · {{ $d->toppings->pluck('nama_topping')->join(', ') }}@endif
+                            </div>
+                            <div class="nw-price small">{{ $rp($d->subtotal) }}</div>
+                        </div>
+                        <span class="text-muted small">×{{ $d->jumlah }}</span>
+                    </div>
+                @endforeach
+
+                @if ($pesanan->catatan)
+                    <div class="nw-card-soft p-3 small mt-2"><i class="bi bi-chat-left-text me-1"></i> Catatan: {{ $pesanan->catatan }}</div>
+                @endif
+
+                <hr>
+                <div class="d-flex justify-content-between align-items-end">
+                    <span class="fw-bold">Total</span>
+                    <div class="text-end">
+                        <div class="nw-price fs-4">{{ $rp($pesanan->total_harga) }}</div>
+                        @if ($pembayaran)
+                            <div class="small text-muted">{{ $pembayaran->metode_pembayaran }} · {{ ucfirst($pembayaran->status_pembayaran) }}</div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Info pengambilan dan bantuan --}}
+        <div class="col-12 col-lg-4">
+            <div class="nw-card p-3 p-md-4 mb-3">
+                @if ($pesanan->metode_pengambilan === 'antar')
+                    <h2 class="h6 mb-2"><i class="bi bi-bicycle text-danger me-1"></i> Diantar ke alamatmu</h2>
+                    <div class="small fw-bold">{{ auth()->user()->nama }}@if (auth()->user()->nomor_hp) · {{ auth()->user()->nomor_hp }}@endif</div>
+                    <div class="small text-muted">{{ $pesanan->alamat }}</div>
+                @else
+                    <h2 class="h6 mb-2"><i class="bi bi-shop text-danger me-1"></i> Ambil di kedai</h2>
+                    <div class="small text-muted">Tunjukkan nomor pesanan <strong>{{ $nomor }}</strong> saat mengambil.</div>
+                @endif
+            </div>
+
+            <div class="nw-card p-3 p-md-4">
+                <a href="#" class="btn btn-outline-dark w-100 mb-2 js-segera"><i class="bi bi-chat-dots me-1 text-danger"></i> Hubungi kedai</a>
+                <a href="{{ route('katalog.index') }}" class="btn btn-primary w-100 mb-2">Kembali ke menu</a>
+                <a href="{{ route('pesanan.riwayat') }}" class="d-block text-center small fw-bold">Semua pesananku</a>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection

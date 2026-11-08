@@ -5,7 +5,7 @@
 @section('content')
 @php
     $rp = fn ($v) => 'Rp' . number_format($v, 0, ',', '.');
-    $nomor = '#NSW-' . str_pad($pesanan->id_pesanan, 4, '0', STR_PAD_LEFT);
+    $nomor = '#' . $pesanan->nomor_pesanan;
     $status = $pesanan->status_pesanan;
     $batal = $status === 'batal';
 
@@ -38,6 +38,12 @@
         <div class="text-md-end">
             <div class="h4 fw-bold mb-0">{{ $nomor }}</div>
             <div class="small text-muted">{{ optional($pesanan->tanggal_pesanan)->format('d M Y · H.i') }} WIB</div>
+            @if (in_array($status, ['baru', 'diproses', 'siap']))
+                <div class="small mt-1">
+                    <span class="text-muted">{{ $pesanan->metode_pengambilan === 'antar' ? 'Estimasi tiba' : 'Estimasi siap' }}</span>
+                    <strong class="text-danger">{{ $pesanan->estimasi_tiba }}</strong>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -76,9 +82,14 @@
                         <div style="width:56px;flex:none"><x-foto-menu :menu="$d->menu" rasio="1x1" class="rounded-3" /></div>
                         <div class="flex-grow-1">
                             <div class="fw-bold small">{{ $d->menu->nama_menu ?? 'Menu' }}</div>
-                            <div class="text-muted" style="font-size:.75rem">
-                                {{ $d->levelPedas->nama_level ?? '' }}@if ($d->toppings->isNotEmpty()) · {{ $d->toppings->pluck('nama_topping')->join(', ') }}@endif
-                            </div>
+                            @if ($d->levelPedas || $d->toppings->isNotEmpty())
+                                <div class="text-muted" style="font-size:.75rem">
+                                    {{ $d->levelPedas->nama_level ?? '' }}@if ($d->toppings->isNotEmpty()) · {{ $d->toppings->pluck('nama_topping')->join(', ') }}@endif
+                                </div>
+                            @endif
+                            @if ($d->catatan)
+                                <div class="fst-italic text-muted" style="font-size:.75rem"><i class="bi bi-chat-left-text me-1"></i>{{ $d->catatan }}</div>
+                            @endif
                             <div class="nw-price small">{{ $rp($d->subtotal) }}</div>
                         </div>
                         <span class="text-muted small">×{{ $d->jumlah }}</span>
@@ -90,12 +101,26 @@
                 @endif
 
                 <hr>
+                <div class="d-flex justify-content-between small mb-1">
+                    <span class="text-muted">Subtotal menu</span><span>{{ $rp($pesanan->subtotal_menu) }}</span>
+                </div>
+                @if ($pesanan->biaya_layanan > 0)
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="text-muted">Biaya layanan</span><span>{{ $rp($pesanan->biaya_layanan) }}</span>
+                    </div>
+                @endif
+                @if ($pesanan->ongkir > 0)
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="text-muted">Ongkir</span><span>{{ $rp($pesanan->ongkir) }}</span>
+                    </div>
+                @endif
+                <hr>
                 <div class="d-flex justify-content-between align-items-end">
                     <span class="fw-bold">Total</span>
                     <div class="text-end">
                         <div class="nw-price fs-4">{{ $rp($pesanan->total_harga) }}</div>
                         @if ($pembayaran)
-                            <div class="small text-muted">QRIS</div>
+                            <div class="small text-muted">{{ $pembayaran->metode_pembayaran }} · {{ ucfirst($pembayaran->status_pembayaran) }}</div>
                         @endif
                     </div>
                 </div>
@@ -107,8 +132,11 @@
             <div class="nw-card p-3 p-md-4 mb-3">
                 @if ($pesanan->metode_pengambilan === 'antar')
                     <h2 class="h6 mb-2"><i class="bi bi-bicycle text-danger me-1"></i> Diantar ke alamatmu</h2>
-                    <div class="small fw-bold">{{ auth()->user()->nama }}@if (auth()->user()->nomor_hp) · {{ auth()->user()->nomor_hp }}@endif</div>
+                    <div class="small fw-bold">{{ $pesanan->nama_penerima ?? auth()->user()->nama }}@if ($pesanan->nomor_penerima ?? auth()->user()->nomor_hp) · {{ $pesanan->nomor_penerima ?? auth()->user()->nomor_hp }}@endif</div>
                     <div class="small text-muted">{{ $pesanan->alamat }}</div>
+                    @if ($pesanan->detail_alamat)
+                        <div class="small text-muted">Detail: {{ $pesanan->detail_alamat }}</div>
+                    @endif
                 @else
                     <h2 class="h6 mb-2"><i class="bi bi-shop text-danger me-1"></i> Ambil di kedai</h2>
                     <div class="small text-muted">Tunjukkan nomor pesanan <strong>{{ $nomor }}</strong> saat mengambil.</div>

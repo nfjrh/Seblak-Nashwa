@@ -5,11 +5,12 @@
 @section('content')
 @php
     $rp = fn ($v) => 'Rp' . number_format($v, 0, ',', '.');
-    $ikonBayar = ['transfer' => 'bi-bank', 'qris' => 'bi-qr-code', 'tunai' => 'bi-cash-coin'];
+    $ikonBayar = ['transfer' => 'bi-bank', 'qris' => 'bi-qr-code', 'tunai' => 'bi-cash-coin', 'cod' => 'bi-cash-coin'];
     $infoBayar = [
         'transfer' => 'Transfer ke rekening kedai',
         'qris'     => 'Pindai dari bank / dompet digital',
         'tunai'    => 'Bayar saat pesanan diterima',
+        'cod'      => 'Bayar saat pesanan diterima',
     ];
     $pengambilan = old('metode_pengambilan', 'ambil');
 @endphp
@@ -81,18 +82,42 @@
                         </div>
                     </div>
 
-                    <div class="small text-muted mb-3">
-                        Atas nama <strong class="text-dark">{{ auth()->user()->nama }}</strong>@if (auth()->user()->nomor_hp) · {{ auth()->user()->nomor_hp }}@endif
+                    {{-- Data penerima --}}
+                    <h3 class="h6 fw-bold mt-4 mb-3">Data penerima</h3>
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-sm-6">
+                            <label for="nama_penerima" class="form-label small text-muted">Nama penerima</label>
+                            <input type="text" name="nama_penerima" id="nama_penerima" 
+                                   class="form-control @error('nama_penerima') is-invalid @enderror" 
+                                   value="{{ old('nama_penerima', auth()->user()->nama) }}" 
+                                   placeholder="Najwa" required>
+                            @error('nama_penerima')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label for="nomor_penerima" class="form-label small text-muted">Nomor WhatsApp</label>
+                            <input type="text" name="nomor_penerima" id="nomor_penerima" 
+                                   class="form-control @error('nomor_penerima') is-invalid @enderror" 
+                                   value="{{ old('nomor_penerima', auth()->user()->nomor_hp) }}" 
+                                   placeholder="08xxxxxxxxxx" required>
+                            @error('nomor_penerima')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
                     </div>
 
-                    <div id="kotak-alamat" class="mb-3 {{ $pengambilan === 'antar' ? '' : 'd-none' }}">
-                        <label for="alamat" class="form-label">Alamat pengantaran</label>
-                        <textarea name="alamat" id="alamat" rows="3" class="form-control @error('alamat') is-invalid @enderror"
-                                  placeholder="Contoh: Jl. Melati No. 12, RT 02/RW 04">{{ old('alamat') }}</textarea>
-                        @error('alamat')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div id="kotak-alamat" class="{{ $pengambilan === 'antar' ? '' : 'd-none' }}">
+                        <div class="mb-3">
+                            <label for="alamat" class="form-label">Alamat pengantaran</label>
+                            <textarea name="alamat" id="alamat" rows="2" class="form-control @error('alamat') is-invalid @enderror"
+                                      placeholder="Contoh: Jl. Melati No. 12, RT 02/RW 04">{{ old('alamat') }}</textarea>
+                            @error('alamat')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="mb-3">
+                            <label for="detail_alamat" class="form-label">Detail alamat <span class="text-muted fw-normal">(opsional)</span></label>
+                            <input type="text" name="detail_alamat" id="detail_alamat" class="form-control" 
+                                   value="{{ old('detail_alamat') }}" placeholder="Contoh: Rumah pagar putih, sebelah toko fotokopi.">
+                        </div>
                     </div>
 
-                    <div>
+                    <div class="mt-3">
                         <label for="catatan" class="form-label">Catatan untuk dapur <span class="text-muted fw-normal">(opsional)</span></label>
                         <textarea name="catatan" id="catatan" rows="2" maxlength="500" class="form-control"
                                   placeholder="Contoh: Kuah agak banyak ya, terima kasih.">{{ old('catatan') }}</textarea>
@@ -150,5 +175,4 @@
         });
     });
 </script>
-
 @endpush

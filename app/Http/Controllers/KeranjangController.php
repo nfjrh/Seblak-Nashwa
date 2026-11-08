@@ -81,4 +81,16 @@ class KeranjangController extends Controller
 
         return redirect()->route('keranjang.index')->with('status', $menu->nama_menu . ' masuk ke keranjang.');
     }
+
+    public function hapus($id)
+    {
+        // Cari item keranjang berdasarkan ID dan pastikan milik user yang sedang login
+        $item = $this->itemMilikSaya()->where('id_detail_keranjang', $id)->firstOrFail();
+        
+        // Hapus relasi topping terlebih dahulu lalu hapus item detail keranjangnya
+        $item->toppings()->detach();
+        $item->delete();
+
+        return redirect()->route('keranjang.index')->with('status', 'Item berhasil dihapus dari keranjang.');
+    }
 }

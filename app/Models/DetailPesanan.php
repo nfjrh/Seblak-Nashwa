@@ -11,7 +11,7 @@ class DetailPesanan extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'id_pesanan', 'id_menu', 'id_level', 'jumlah', 'harga', 'subtotal',
+        'id_pesanan', 'id_menu', 'id_level', 'jumlah', 'catatan', 'harga', 'subtotal',
     ];
 
     public function pesanan()

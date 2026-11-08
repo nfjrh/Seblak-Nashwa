@@ -11,11 +11,14 @@ class DetailKeranjang extends Model
     const JUMLAH_MIN = 1;
     const JUMLAH_MAKS = 20;
 
+    // Constant: panjang maksimal catatan untuk dapur
+    const CATATAN_MAKS = 200;
+
     protected $table = 'detail_keranjang';
     protected $primaryKey = 'id_detail_keranjang';
     public $timestamps = false;
 
-    protected $fillable = ['id_keranjang', 'id_menu', 'id_level', 'jumlah'];
+    protected $fillable = ['id_keranjang', 'id_menu', 'id_level', 'jumlah', 'catatan'];
 
     public function keranjang()
     {
@@ -47,6 +50,14 @@ class DetailKeranjang extends Model
     {
         return Attribute::make(
             set: fn ($nilai) => max(self::JUMLAH_MIN, min(self::JUMLAH_MAKS, (int) $nilai))
+        );
+    }
+
+    // Mutator: catatan dirapikan, dan catatan kosong disimpan sebagai null
+    protected function catatan(): Attribute
+    {
+        return Attribute::make(
+            set: fn ($nilai) => ($nilai === null || trim($nilai) === '') ? null : trim($nilai)
         );
     }
 

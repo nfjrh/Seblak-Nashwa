@@ -34,35 +34,44 @@ class KeranjangController extends Controller
         return view('keranjang.index', compact('items', 'total'));
     }
 
-    public function tambah(Request $request) {
-        // Ambil data menu terlebih dahulu untuk mengecek kategorinya
-        $menu = Menu::with('kategori')->findOrFail($request->id_menu);
-        if ($menu->status !== 'tersedia') {
-            return back()->withErrors(['id_menu' => 'Menu ini sedang habis.']);
-        }
-
-        // Cek apakah menu ini adalah kategori Seblak
-        $isSeblak = $menu->kategori && strtolower($menu->kategori->nama_kategori) === 'seblak';
-
-        // Validasi dinamis: level pedas wajib jika seblak, nullable jika bukan seblak
+    public function tambah(Request $request)
+    {
         $data = $request->validate([
             'id_menu'    => 'required|exists:menu,id_menu',
-            'id_level'   => $isSeblak ? 'required|exists:level_pedas,id_level' : 'nullable',
+            'id_level'   => 'nullable|exists:level_pedas,id_level',
             'topping'    => 'nullable|array',
             'topping.*'  => 'exists:topping,id_topping',
             'jumlah'     => 'required|integer|min:' . DetailKeranjang::JUMLAH_MIN . '|max:' . DetailKeranjang::JUMLAH_MAKS,
-        ], [
-            'id_level.required' => 'Pilih level pedasnya dulu.',
+            'catatan'    => 'nullable|string|max:' . DetailKeranjang::CATATAN_MAKS,
         ]);
 
-        $toppingIds = collect($data['topping'] ?? [])->map(fn ($v) => (int) $v)->unique()->sort()->values()->all();
+        $menu = Menu::with('kategori')->findOrFail($data['id_menu']);
+        if ($menu->status !== Menu::STATUS_TERSEDIA) {
+            return back()->withErrors(['id_menu' => 'Menu ini sedang habis.']);
+        }
+
+        // Seblak wajib memilih level pedas dan boleh memakai topping.
+        // Menu lain (minuman, topping) langsung dipesan tanpa level dan tanpa topping.
+        if ($menu->bisaDiracik()) {
+            if (empty($data['id_level'])) {
+                return back()->withErrors(['id_level' => 'Pilih level pedasnya dulu.'])->withInput();
+            }
+            $idLevel = (int) $data['id_level'];
+            $toppingIds = collect($data['topping'] ?? [])->map(fn ($v) => (int) $v)->unique()->sort()->values()->all();
+        } else {
+            $idLevel = null;
+            $toppingIds = [];
+        }
+
+        $catatan = trim((string) ($data['catatan'] ?? '')) ?: null;
 
         $keranjang = Keranjang::milikUser(Auth::id());
 
-        // Kalau menu, level, dan topping-nya sama persis, cukup tambah jumlahnya.
+        // Kalau menu, level, topping, dan catatannya sama persis, cukup tambah jumlahnya.
         $sama = $keranjang->detailKeranjangs()
             ->where('id_menu', $menu->id_menu)
-            ->where('id_level', $data['id_level'] ?? null)
+            ->where('id_level', $idLevel)
+            ->where('catatan', $catatan)
             ->with('toppings')
             ->get()
             ->first(fn ($d) => $d->toppings->pluck('id_topping')->map(fn ($v) => (int) $v)->sort()->values()->all() === $toppingIds);
@@ -73,8 +82,9 @@ class KeranjangController extends Controller
             $item = DetailKeranjang::create([
                 'id_keranjang' => $keranjang->id_keranjang,
                 'id_menu'      => $menu->id_menu,
-                'id_level'     => $data['id_level'] ?? null,
+                'id_level'     => $idLevel,
                 'jumlah'       => $data['jumlah'],
+                'catatan'      => $catatan,
             ]);
             $item->toppings()->sync($toppingIds);
         }
@@ -82,15 +92,21 @@ class KeranjangController extends Controller
         return redirect()->route('keranjang.index')->with('status', $menu->nama_menu . ' masuk ke keranjang.');
     }
 
-    public function hapus($id)
+    public function ubah(Request $request, int $id)
     {
-        // Cari item keranjang berdasarkan ID dan pastikan milik user yang sedang login
-        $item = $this->itemMilikSaya()->where('id_detail_keranjang', $id)->firstOrFail();
-        
-        // Hapus relasi topping terlebih dahulu lalu hapus item detail keranjangnya
-        $item->toppings()->detach();
-        $item->delete();
+        $data = $request->validate([
+            'jumlah' => 'required|integer|min:' . DetailKeranjang::JUMLAH_MIN . '|max:' . DetailKeranjang::JUMLAH_MAKS,
+        ]);
 
-        return redirect()->route('keranjang.index')->with('status', 'Item berhasil dihapus dari keranjang.');
+        $this->itemMilikSaya()->findOrFail($id)->update(['jumlah' => $data['jumlah']]);
+
+        return redirect()->route('keranjang.index');
+    }
+
+    public function hapus(int $id)
+    {
+        $this->itemMilikSaya()->findOrFail($id)->delete();
+
+        return redirect()->route('keranjang.index')->with('status', 'Item dihapus dari keranjang.');
     }
 }

@@ -178,7 +178,7 @@
                             ['Apa saja topping tambahannya?', $toppings->isNotEmpty() ? 'Pilihan topping: ' . $daftarTopping . '.' : 'Pilihan topping tersedia di halaman pemesanan.'],
                             ['Bisa ambil di kedai atau diantar?', 'Keduanya tersedia. Pilih cara menerima pesanan saat melanjutkan pemesanan.'],
                             ['Berapa biaya pengantarannya?', 'Biaya layanan dan pengantaran dihitung saat pembayaran. Cek rinciannya sebelum menyelesaikan pesanan.'],
-                            ['Kapan saya bisa memesan?', 'Jam layanan kedai setiap hari, pukul 10.00–21.00 WIB.'],
+                            ['Kapan saya bisa memesan?', 'Jam layanan kedai setiap hari, pukul 10.00–21.00 WITA.'],
                         ];
                     @endphp
                     @foreach ($faq as $i => [$tanya, $jawab])

@@ -32,9 +32,14 @@
 
                             <div class="flex-grow-1">
                                 <div class="fw-bold">{{ $item->menu->nama_menu }}</div>
-                                <div class="text-muted small">
-                                    {{ $item->levelPedas->nama_level ?? '' }}@if ($item->toppings->isNotEmpty()) · {{ $item->toppings->pluck('nama_topping')->join(', ') }}@endif
-                                </div>
+                                @if ($item->levelPedas || $item->toppings->isNotEmpty())
+                                    <div class="text-muted small">
+                                        {{ $item->levelPedas->nama_level ?? '' }}@if ($item->toppings->isNotEmpty()) · {{ $item->toppings->pluck('nama_topping')->join(', ') }}@endif
+                                    </div>
+                                @endif
+                                @if ($item->catatan)
+                                    <div class="small fst-italic text-muted"><i class="bi bi-chat-left-text me-1"></i>{{ $item->catatan }}</div>
+                                @endif
                                 <div class="nw-price small">{{ $rp($item->subtotal()) }}</div>
                             </div>
 

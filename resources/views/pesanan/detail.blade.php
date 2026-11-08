@@ -37,7 +37,7 @@
         </div>
         <div class="text-md-end">
             <div class="h4 fw-bold mb-0">{{ $nomor }}</div>
-            <div class="small text-muted">{{ optional($pesanan->tanggal_pesanan)->format('d M Y · H.i') }} WIB</div>
+            <div class="small text-muted">{{ optional($pesanan->tanggal_pesanan)->format('d M Y · H.i') }} WITA</div>
             @if (in_array($status, ['baru', 'diproses', 'siap']))
                 <div class="small mt-1">
                     <span class="text-muted">{{ $pesanan->metode_pengambilan === 'antar' ? 'Estimasi tiba' : 'Estimasi siap' }}</span>

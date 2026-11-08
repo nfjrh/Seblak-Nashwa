@@ -13,6 +13,7 @@
         'cod'      => 'Bayar saat pesanan diterima',
     ];
     $pengambilan = old('metode_pengambilan', 'ambil');
+    $subtotal = $items->sum(fn ($item) => $item->subtotal());
 @endphp
 <div class="container py-4">
     <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
@@ -35,7 +36,7 @@
         </div>
     @endif
 
-    <form action="{{ route('checkout.process') }}" method="POST">
+    <form action="{{ route('checkout.process') }}" method="POST" id="form-checkout" data-subtotal="{{ $subtotal }}">
         @csrf
         <div class="row g-4">
             <div class="col-12 col-lg-8">
@@ -148,14 +149,24 @@
                     <h2 class="h5 mb-3">Ringkasan pembayaran</h2>
                     <div class="d-flex justify-content-between small mb-2">
                         <span class="text-muted">Subtotal ({{ $items->sum('jumlah') }} item)</span>
-                        <strong>{{ $rp($total) }}</strong>
+                        <strong>{{ $rp($subtotal) }}</strong>
                     </div>
+
+                    <div class="d-flex justify-content-between small mb-2 text-muted" id="info-layanan" style="display: none !important;">
+                        <span>Biaya layanan</span>
+                        <span>Rp2.000</span>
+                    </div>
+                    <div class="d-flex justify-content-between small mb-2 text-muted" id="info-ongkir" style="display: none !important;">
+                        <span>Ongkir</span>
+                        <span>Rp8.000</span>
+                    </div>
+
                     <hr>
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <span class="fw-bold">Total pembayaran</span>
-                        <span class="nw-price fs-4">{{ $rp($total) }}</span>
+                        <span class="nw-price fs-4" id="val-total">{{ $rp($subtotal) }}</span>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100 py-2">Buat pesanan · {{ $rp($total) }}</button>
+                    <button type="submit" class="btn btn-primary w-100 py-2" id="btn-buat-pesanan">Buat pesanan · {{ $rp($subtotal) }}</button>
                     <p class="text-muted text-center mt-3 mb-0" style="font-size:.72rem">
                         Dengan memesan, kamu menyetujui ketentuan pemesanan. Pesanan yang sudah dimasak tidak dapat dibatalkan.
                     </p>
@@ -168,11 +179,44 @@
 
 @push('scripts')
 <script>
-    // Kotak alamat hanya muncul kalau memilih pengantaran
+    const formCheckout = document.getElementById('form-checkout');
+    const subtotal = parseFloat(formCheckout.getAttribute('data-subtotal')) || 0;
+    
+    const biayaLayanan = 2000;
+    const ongkirTetap = 8000;
+
+    function formatRupiah(angka) {
+        return 'Rp' + angka.toLocaleString('id-ID');
+    }
+
+    function perbaruiTotal() {
+        const isAntar = document.getElementById('antar').checked;
+        const kotakAlamat = document.getElementById('kotak-alamat');
+        const infoLayanan = document.getElementById('info-layanan');
+        const infoOngkir = document.getElementById('info-ongkir');
+        const valTotal = document.getElementById('val-total');
+        const btnBuatPesanan = document.getElementById('btn-buat-pesanan');
+
+        kotakAlamat.classList.toggle('d-none', !isAntar);
+
+        let totalAkhir = subtotal;
+        if (isAntar) {
+            totalAkhir += biayaLayanan + ongkirTetap;
+            infoLayanan.style.setProperty('display', 'flex', 'important');
+            infoOngkir.style.setProperty('display', 'flex', 'important');
+        } else {
+            infoLayanan.style.setProperty('display', 'none', 'important');
+            infoOngkir.style.setProperty('display', 'none', 'important');
+        }
+
+        valTotal.textContent = formatRupiah(totalAkhir);
+        btnBuatPesanan.textContent = 'Buat pesanan · ' + formatRupiah(totalAkhir);
+    }
+
     document.querySelectorAll('input[name="metode_pengambilan"]').forEach(function (r) {
-        r.addEventListener('change', function () {
-            document.getElementById('kotak-alamat').classList.toggle('d-none', this.value !== 'antar');
-        });
+        r.addEventListener('change', perbaruiTotal);
     });
+
+    perbaruiTotal();
 </script>
 @endpush

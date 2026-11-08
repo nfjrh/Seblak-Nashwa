@@ -22,9 +22,11 @@
     <p>Pelanggan: <strong>{{ $pesanan->user->nama ?? '-' }}</strong> ({{ $pesanan->user->nomor_hp ?? '-' }})</p>
     <p>Tanggal: {{ optional($pesanan->tanggal_pesanan)->format('d M Y, H:i') }}</p>
     <p>Pengambilan: {{ ucfirst($pesanan->metode_pengambilan) }}</p>
-    @if ($pesanan->alamat) <p>Alamat: {{ $pesanan->alamat }}</p> @endif
+    @if ($pesanan->nama_penerima) <p>Penerima: <strong>{{ $pesanan->nama_penerima }}</strong> ({{ $pesanan->nomor_penerima }})</p> @endif
+    @if ($pesanan->alamat) <p>Alamat: {{ $pesanan->alamat }}@if ($pesanan->detail_alamat) ({{ $pesanan->detail_alamat }})@endif</p> @endif
     @if ($pesanan->catatan) <p>Catatan: {{ $pesanan->catatan }}</p> @endif
     <p>Status: <span class="badge badge-{{ $pesanan->status_pesanan }}">{{ $pesanan->label_status }}</span></p>
+    <p>Biaya layanan: Rp {{ number_format($pesanan->biaya_layanan, 0, ',', '.') }} · Ongkir: Rp {{ number_format($pesanan->ongkir, 0, ',', '.') }}</p>
     <p>Total: <strong>{{ $pesanan->total_rupiah }}</strong></p>
 </div>
 
@@ -35,7 +37,7 @@
         <tbody>
             @foreach ($pesanan->detailPesanans as $d)
                 <tr>
-                    <td>{{ $d->menu->nama_menu ?? '-' }}</td>
+                    <td>{{ $d->menu->nama_menu ?? '-' }}@if ($d->catatan)<br><small class="text-muted">Catatan: {{ $d->catatan }}</small>@endif</td>
                     <td>{{ $d->levelPedas->nama_level ?? '-' }}</td>
                     <td>{{ $d->toppings->pluck('nama_topping')->join(', ') ?: '-' }}</td>
                     <td>{{ $d->jumlah }}</td>

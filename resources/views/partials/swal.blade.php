@@ -1,6 +1,6 @@
 <div id="flash-pesan" class="d-none"
-     data-status="{{ session('status') }}"
-     data-galat="{{ session('galat') }}"></div>
+     data-status="{{ session('status') ?? session('success') }}"
+     data-galat="{{ session('galat') ?? session('error') }}"></div>
 
 <script>
     const toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2800, timerProgressBar: true });

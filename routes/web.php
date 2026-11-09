@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminLaporanController;
 use App\Http\Controllers\AdminPesananController;
 use App\Http\Controllers\AuthPelangganController;
 use App\Http\Controllers\BerandaController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\PesananController;
 use App\Http\Controllers\ToppingController;
 use App\Http\Middleware\AdminOnly;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\PengaturanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -62,8 +64,12 @@ Route::post('/admin/logout', [AdminController::class, 'logout'])
 | Anggota 2: Kategori, Menu, Katalog
 |--------------------------------------------------------------------------
 */
-Route::resource('kategori', KategoriController::class)->except('show');
-Route::resource('menu', MenuController::class)->except('show');
+// Kelola kategori dan menu hanya untuk admin (sebelumnya terbuka untuk siapa saja)
+Route::middleware(AdminOnly::class)->group(function () {
+    Route::resource('kategori', KategoriController::class)->except('show');
+    Route::patch('menu/{menu}/status', [MenuController::class, 'ubahStatus'])->name('menu.status');
+    Route::resource('menu', MenuController::class)->except('show');
+});
 Route::get('/katalog', [KatalogController::class, 'index'])->name('katalog.index');
 Route::get('/katalog/{menu}', [KatalogController::class, 'show'])->name('katalog.show');
 
@@ -99,4 +105,13 @@ Route::prefix('admin')->name('admin.')->middleware(AdminOnly::class)->group(func
     Route::get('pesanan/{id}', [AdminPesananController::class, 'show'])->whereNumber('id')->name('pesanan.show');
     Route::patch('pesanan/{id}/status', [AdminPesananController::class, 'ubahStatus'])->whereNumber('id')->name('pesanan.status');
     Route::patch('pesanan/{id}/pembayaran', [AdminPesananController::class, 'verifikasiPembayaran'])->whereNumber('id')->name('pesanan.pembayaran');
+
+    // Laporan penjualan dan pengaturan kedai
+    Route::get('laporan', [AdminLaporanController::class, 'index'])->name('laporan.index');
+    Route::view('pengaturan', 'admin.pengaturan')->name('pengaturan');
+});
+
+Route::prefix('admin')->middleware(['auth'])->group(function () {
+    Route::get('/pengaturan', [PengaturanController::class, 'index'])->name('admin.pengaturan');
+    Route::put('/pengaturan', [PengaturanController::class, 'update'])->name('admin.pengaturan.update');
 });

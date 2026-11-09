@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Menu;
 use App\Models\Pesanan;
 use App\Models\Topping;
+use App\Models\Kategori;
 use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
@@ -22,7 +23,10 @@ class AdminController extends Controller
             return redirect()->route('admin.login');
         }
 
-        if (! Auth::user()->isAdmin()) {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if (! $user->isAdmin()) {
             Auth::logout();
 
             return redirect()->route('admin.login')
@@ -51,6 +55,7 @@ class AdminController extends Controller
         return view('admin.dashboard', [
             'penjualanHariIni' => $penjualanHariIni,
             'pesananHariIni'   => $pesananHariIni,
+            'totalPesanan'     => $pesananHariIni,
             'selesaiHariIni'   => $selesaiHariIni,
             'rataRata'         => $pesananHariIni > 0 ? $penjualanHariIni / $pesananHariIni : 0,
             'penjualanPerJam'  => $penjualanPerJam,
@@ -61,6 +66,8 @@ class AdminController extends Controller
                 ->pluck('jumlah', 'status_pesanan'),
 
             'menuTersedia'  => Menu::where('status', Menu::STATUS_TERSEDIA)->count(),
+            'totalMenu'     => Menu::count(),
+            'totalKategori' => Kategori::count(),
             'menuUnggulan'  => Menu::with('kategori')->where('status', Menu::STATUS_TERSEDIA)->limit(2)->get(),
             'jumlahTopping' => Topping::count(),
             'daftarTopping' => Topping::orderBy('nama_topping')->pluck('nama_topping'),
@@ -82,7 +89,10 @@ class AdminController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            if (! Auth::user()->isAdmin()) {
+            /** @var \App\Models\User $user */
+            $user = Auth::user();
+
+            if (! $user->isAdmin()) {
                 Auth::logout();
 
                 $request->session()->invalidate();

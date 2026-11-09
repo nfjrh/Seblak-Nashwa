@@ -1,10 +1,11 @@
-@extends('layouts.admin')
-@section('title', 'Edit Kategori')
-@section('heading', 'Edit Kategori')
-@section('subheading', 'Ubah nama kategori.')
+@extends('layouts.panel')
+
+@section('title', 'Ubah Kategori')
+@section('heading', 'Ubah Kategori')
+@section('subheading', 'Perbarui nama kategori.')
 
 @section('content')
-<div class="panel" style="max-width:560px">
+<div class="nw-card p-3 p-md-4" style="max-width:560px">
     <form action="{{ route('kategori.update', $kategori->id_kategori) }}" method="POST">
         @csrf
         @method('PUT')

@@ -1,10 +1,11 @@
-@extends('layouts.admin')
-@section('title', 'Edit Topping')
-@section('heading', 'Edit Topping')
-@section('subheading', 'Ubah data topping.')
+@extends('layouts.panel')
+
+@section('title', 'Ubah Topping')
+@section('heading', 'Ubah Topping')
+@section('subheading', 'Perbarui harga dan stok topping.')
 
 @section('content')
-<div class="panel" style="max-width:560px">
+<div class="nw-card p-3 p-md-4" style="max-width:640px">
     <form action="{{ route('admin.topping.update', $topping->id_topping) }}" method="POST">
         @csrf
         @method('PUT')

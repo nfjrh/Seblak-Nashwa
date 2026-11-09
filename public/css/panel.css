@@ -1,0 +1,64 @@
+/* Panel admin Seblak Nashwa. Dipakai bersama tema.css (warna ada di :root pada tema.css). */
+.pn-side { position: fixed; inset: 0 auto 0 0; width: 250px; background: #fff; border-right: 1px solid var(--nw-garis); display: flex; flex-direction: column; padding: 1.2rem 1rem; z-index: 1030; overflow-y: auto; }
+.pn-main { margin-left: 250px; min-width: 0; min-height: 100vh; }
+.pn-top { background: #fff; border-bottom: 1px solid var(--nw-garis); position: sticky; top: 0; z-index: 1020; }
+.pn-label { font-size: .7rem; font-weight: 800; letter-spacing: .08em; color: var(--nw-muted); text-transform: uppercase; margin: 1.4rem .5rem .5rem; }
+.pn-link { display: flex; align-items: center; gap: .7rem; padding: .62rem .8rem; border-radius: .8rem; color: var(--nw-muted); font-weight: 600; font-size: .92rem; border: 0; background: transparent; width: 100%; text-align: left; }
+.pn-link:hover { background: var(--nw-peach); color: var(--nw-gelap); }
+.pn-link.active { background: var(--nw-merah-muda); color: var(--nw-merah); }
+.pn-link i { font-size: 1.05rem; }
+.pn-n { margin-left: auto; font-size: .75rem; font-weight: 800; color: var(--nw-merah); }
+
+/* Kartu angka */
+.pn-stat { background: #fff; border: 1px solid var(--nw-garis); border-radius: 1.1rem; padding: 1.1rem 1.2rem; height: 100%; }
+.pn-stat .pn-stat-ico { float: right; color: var(--nw-merah); font-size: 1.1rem; }
+.pn-stat small { color: var(--nw-muted); }
+.pn-stat .pn-val { font-size: 1.9rem; font-weight: 800; line-height: 1.2; }
+
+/* Grafik batang sederhana (tanpa library) */
+.pn-bars { display: flex; align-items: flex-end; gap: .6rem; height: 220px; padding-top: 1.6rem; }
+.pn-bar-col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; min-width: 0; }
+.pn-bar { width: 100%; max-width: 64px; background: #F0913A; border-radius: .6rem .6rem 0 0; min-height: 3px; }
+.pn-bar.top { background: var(--nw-merah); }
+.pn-bar-val { font-size: .7rem; color: var(--nw-muted); margin-bottom: .3rem; white-space: nowrap; }
+.pn-bar-jam { font-size: .75rem; color: var(--nw-muted); margin-top: .4rem; }
+
+/* Tabel */
+.pn-table { --bs-table-bg: transparent; margin: 0; }
+.pn-table th { font-size: .72rem; letter-spacing: .05em; text-transform: uppercase; color: var(--nw-muted); font-weight: 800; background: #FBF4EA; border-bottom: 0; white-space: nowrap; }
+.pn-table td { vertical-align: middle; }
+.pn-table tbody tr:last-child td { border-bottom: 0; }
+
+/* Label status (soft badge) */
+.st { display: inline-block; padding: .3rem .75rem; border-radius: 2rem; font-size: .75rem; font-weight: 700; white-space: nowrap; }
+.st-baru     { background: #FDEBE6; color: #C63E2A; }
+.st-diproses { background: #FFF1DE; color: #B4631A; }
+.st-siap     { background: #E3F1E8; color: #2F6B4F; }
+.st-selesai  { background: #EAF3EC; color: #3F7D5D; }
+.st-batal    { background: #EFE9E2; color: #7B6B63; }
+.st-menunggu { background: #FFF1DE; color: #B4631A; }
+.st-lunas    { background: #E3F1E8; color: #2F6B4F; }
+.st-ditolak  { background: #FDEBE6; color: #C63E2A; }
+.st-tersedia { background: #E3F1E8; color: #2F6B4F; }
+.st-habis    { background: #EFE9E2; color: #7B6B63; }
+.st-menipis  { background: #FFF1DE; color: #B4631A; }
+
+/* Saklar tersedia/habis */
+.form-switch .form-check-input { width: 2.6em; height: 1.4em; cursor: pointer; }
+.form-switch .form-check-input:checked { background-color: var(--nw-hijau); border-color: var(--nw-hijau); }
+
+.pn-menu-row { display: flex; gap: 1rem; align-items: center; padding: .9rem; border-radius: 1rem; background: #fff; border: 1px solid var(--nw-garis); }
+.pn-menu-row .nw-foto { width: 88px; flex: none; border-radius: .8rem; }
+.pn-preview { max-width: 100%; border-radius: 1rem; }
+.pn-login-kiri { background: #3F2820; color: #fff; border-radius: 1.4rem 0 0 1.4rem; }
+.pn-login-kiri .text-muted { color: #D8C5B9 !important; }
+
+@media (max-width: 991.98px) {
+    .pn-side { display: none; }
+    .pn-main { margin-left: 0; }
+    .pn-login-kiri { border-radius: 1.4rem 1.4rem 0 0; }
+}
+@media (max-width: 575.98px) {
+    .pn-bar-val { display: none; }
+    .pn-menu-row { flex-wrap: wrap; }
+}

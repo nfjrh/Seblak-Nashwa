@@ -21,20 +21,42 @@ class AdminPesananController extends Controller
     {
     }
 
-    // Daftar pesanan masuk, bisa difilter: /admin/pesanan?status=baru
+    // Daftar pesanan masuk. Filter: ?status=baru &q=nama-atau-nomor &dari=2026-11-01 &sampai=2026-11-08
     public function index(Request $request)
     {
         $status = $request->query('status');
+        $kataKunci = trim((string) $request->query('q'));
 
-        $query = $status
-            ? Pesanan::where('status_pesanan', $status)
-            : $this->pesanan->newQuery();
+        $query = $this->pesanan->newQuery();
+
+        if ($status) {
+            $query->where('status_pesanan', $status);
+        }
+
+        if ($kataKunci !== '') {
+            $nomor = (int) preg_replace('/\D/', '', $kataKunci);   // "NSW-0012" menjadi 12
+            $query->where(function ($w) use ($kataKunci, $nomor) {
+                if ($nomor > 0) {
+                    $w->where('id_pesanan', $nomor);
+                }
+                $w->orWhere('nama_penerima', 'like', '%' . $kataKunci . '%')
+                  ->orWhereHas('user', fn ($u) => $u->where('nama', 'like', '%' . $kataKunci . '%'));
+            });
+        }
+
+        if ($request->filled('dari')) {
+            $query->whereDate('tanggal_pesanan', '>=', $request->query('dari'));
+        }
+        if ($request->filled('sampai')) {
+            $query->whereDate('tanggal_pesanan', '<=', $request->query('sampai'));
+        }
 
         $pesanans = $query
             ->with(['user', 'pembayaran'])
             ->withCount('detailPesanans')
             ->orderByDesc('id_pesanan')
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
 
         $daftarStatus = [
             Pesanan::STATUS_BARU,
@@ -44,7 +66,21 @@ class AdminPesananController extends Controller
             Pesanan::STATUS_BATAL,
         ];
 
-        return view('admin.pesanan.index', compact('pesanans', 'daftarStatus', 'status'));
+        // Jumlah pesanan per status untuk chip filter dan kartu angka
+        $jumlahPerStatus = Pesanan::selectRaw('status_pesanan, COUNT(*) as jumlah')
+            ->groupBy('status_pesanan')
+            ->pluck('jumlah', 'status_pesanan');
+
+        $hariIni = Pesanan::whereDate('tanggal_pesanan', today());
+        $ringkasan = [
+            'hariIni'        => (clone $hariIni)->count(),
+            'selesaiHariIni' => (clone $hariIni)->where('status_pesanan', Pesanan::STATUS_SELESAI)->count(),
+            'baru'           => $jumlahPerStatus[Pesanan::STATUS_BARU] ?? 0,
+            'diproses'       => $jumlahPerStatus[Pesanan::STATUS_DIPROSES] ?? 0,
+            'siap'           => $jumlahPerStatus[Pesanan::STATUS_SIAP] ?? 0,
+        ];
+
+        return view('admin.pesanan.index', compact('pesanans', 'daftarStatus', 'status', 'jumlahPerStatus', 'ringkasan'));
     }
 
     // Detail satu pesanan
